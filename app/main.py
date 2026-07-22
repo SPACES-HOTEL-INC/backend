@@ -46,11 +46,12 @@ if settings.ENV == "production":
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[str(origin) for origin in settings.CORS_ORIGINS] + [
-    "https://spaces-frontend-dev-git-main-samflixdps-projects.vercel.app",
+    "https://space-frontend-dev-git-main-samflixdps-projects.vercel.app",
     "http://localhost:3000",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:3000",
 ],
+    allow_origin_regex=r"https://.*\.vercel\.app",  # Automatically permits all vercel.app preview URLs
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Accept"],
