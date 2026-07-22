@@ -1,16 +1,17 @@
+import uuid
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class BookingBase(BaseModel):
-    room_id: str
-    property_id: str | None = None
+    room_id: uuid.UUID
+    property_id: uuid.UUID | None = None
     check_in_date: date | None = None
     check_out_date: date | None = None
     num_guests: int = 1
-    special_requests: str | None = None
+    special_requests: str | None = Field(None, max_length=2000)
     total_price: float | None = None
 
     @model_validator(mode="before")
@@ -24,6 +25,13 @@ class BookingBase(BaseModel):
             if values.get("guest_id") is not None and values.get("user_id") is None:
                 values["user_id"] = values["guest_id"]
         return values
+
+    @model_validator(mode="after")
+    def validate_dates(self):
+        if self.check_in_date and self.check_out_date:
+            if self.check_out_date <= self.check_in_date:
+                raise ValueError("check_out_date must be after check_in_date")
+        return self
 
     @property
     def check_in(self) -> date | None:
@@ -40,17 +48,15 @@ class BookingCreate(BookingBase):
 
 class BookingUpdate(BaseModel):
     status: Literal["pending", "confirmed", "cancelled", "completed", "no_show"] | None = None
-    special_requests: str | None = None
+    special_requests: str | None = Field(None, max_length=2000)
 
 
 class BookingRead(BookingBase):
-    id: str
-    guest_id: str
+    id: uuid.UUID
+    guest_id: uuid.UUID
     num_nights: int | None = None
     total_price: float | None = None
     status: Literal["pending", "confirmed", "cancelled", "completed", "no_show"]
-    cancelled_at: datetime | None = None
-    cancellation_reason: str | None = None
     created_at: datetime
     updated_at: datetime | None = None
 

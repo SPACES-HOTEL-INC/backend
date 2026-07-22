@@ -1,13 +1,14 @@
+import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, PositiveFloat
 
 
 class PaymentBase(BaseModel):
-    booking_id: str
-    amount: float
-    currency: str | None = "NGN"
+    booking_id: uuid.UUID
+    amount: PositiveFloat
+    currency: str | None = Field(default="NGN", max_length=16)
     payment_method: Literal["card", "bank_transfer", "ussd", "paystack", "flutterwave"]
 
 
@@ -17,12 +18,12 @@ class PaymentCreate(PaymentBase):
 
 class PaymentUpdate(BaseModel):
     status: Literal["pending", "success", "failed", "refunded"] | None = None
-    transaction_ref: str | None = None
+    transaction_ref: str | None = Field(None, max_length=255)
     gateway_response: dict | None = None
 
 
 class PaymentRead(PaymentBase):
-    id: str
+    id: uuid.UUID
     status: Literal["pending", "success", "failed", "refunded"]
     transaction_ref: str | None = None
     gateway_response: dict | None = None

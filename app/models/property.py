@@ -17,7 +17,6 @@ class Property(Base):
     address = Column(String, nullable=False)
     contact = Column(String, nullable=False)
 
-    name = Column(String, nullable=True)
     description = Column(String, nullable=True)
     property_type = Column(String, nullable=True, default="hotel")
     city = Column(String, nullable=True)

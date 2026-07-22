@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float, JSON
-from sqlalchemy.orm import relationship
-from app.database import Base
 import uuid
+from sqlalchemy import Column, Float, ForeignKey, Integer, JSON, String
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+
+from ..database import Base
 
 class Room(Base):
     __tablename__ = "rooms"

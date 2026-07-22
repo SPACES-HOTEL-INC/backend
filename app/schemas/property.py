@@ -5,10 +5,10 @@ from pydantic import BaseModel, ConfigDict, HttpUrl, model_validator
 
 
 class PropertyBase(BaseModel):
-    name: str | None = None
+    hotel_name: str | None = None
     description: str | None = None
     property_type: Literal["hotel", "apartment", "resort", "short_stay"] = "hotel"
-    address: str | None = None
+    address: str
     city: str | None = None
     state: str | None = None
     country: str | None = "Nigeria"
@@ -16,6 +16,7 @@ class PropertyBase(BaseModel):
     longitude: float | None = None
     amenities: list[str] | None = None
     images: list[HttpUrl] | None = None
+    contact: str | None = None
     cancellation_policy: Literal["flexible", "moderate", "strict"] = "flexible"
     is_active: bool | None = True
 
@@ -23,8 +24,8 @@ class PropertyBase(BaseModel):
     @classmethod
     def normalize_legacy_fields(cls, values):
         if isinstance(values, dict):
-            if values.get("name") is None and values.get("hotel_name"):
-                values["name"] = values["hotel_name"]
+            if values.get("hotel_name") is None and values.get("name"):
+                values["hotel_name"] = values["name"]
             if values.get("address") is None and values.get("city"):
                 values["address"] = values["city"]
         return values
@@ -35,7 +36,7 @@ class PropertyCreate(PropertyBase):
 
 
 class PropertyUpdate(BaseModel):
-    name: str | None = None
+    hotel_name: str | None = None
     description: str | None = None
     property_type: Literal["hotel", "apartment", "resort", "short_stay"] | None = None
     address: str | None = None
@@ -46,6 +47,7 @@ class PropertyUpdate(BaseModel):
     longitude: float | None = None
     amenities: list[str] | None = None
     images: list[HttpUrl] | None = None
+    contact: str | None = None
     cancellation_policy: Literal["flexible", "moderate", "strict"] | None = None
     is_active: bool | None = None
 

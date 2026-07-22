@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.room import Room
-from ..schemas.room import RoomCreate
+from ..schemas.room import RoomCreate, RoomResponse
 
 
 async def create_room(session: AsyncSession, room_data: RoomCreate, property_id: str | uuid.UUID) -> Room:
@@ -25,3 +25,8 @@ async def create_room(session: AsyncSession, room_data: RoomCreate, property_id:
 async def get_room_by_id(session: AsyncSession, room_id: uuid.UUID) -> Optional[Room]:
     result = await session.execute(select(Room).where(Room.id == room_id))
     return result.scalar_one_or_none()
+
+
+async def get_rooms_for_property(session: AsyncSession, property_id: uuid.UUID):
+    result = await session.execute(select(Room).where(Room.property_id == property_id))
+    return result.scalars().all()

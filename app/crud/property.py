@@ -17,12 +17,10 @@ async def list_properties(session: AsyncSession) -> list[Property]:
 
 async def create_property(session: AsyncSession, host_id: str, property_in: PropertyCreate) -> Property:
     property_data = property_in.model_dump(exclude_unset=True)
-    property_data.setdefault("name", property_data.get("hotel_name"))
-    property_data.setdefault("address", property_data.get("city"))
-    if property_data.get("images"):
-        property_data["images"] = [str(url) for url in property_data["images"]]
     if property_data.get("hotel_name") is None and property_data.get("name"):
         property_data["hotel_name"] = property_data["name"]
+    if property_data.get("images"):
+        property_data["images"] = [str(url) for url in property_data["images"]]
     if property_data.get("contact") is None:
         property_data["contact"] = property_data.get("address") or ""
     property_obj = Property(owner_id=host_id, **property_data)
@@ -33,8 +31,16 @@ async def create_property(session: AsyncSession, host_id: str, property_in: Prop
 
 
 async def update_property(session: AsyncSession, property_obj: Property, update_in: PropertyUpdate) -> Property:
-    for field, value in update_in.model_dump(exclude_unset=True).items():
-        setattr(property_obj, field, value)
+    update_data = update_in.model_dump(exclude_unset=True)
+    if "hotel_name" in update_data and update_data["hotel_name"] is not None:
+        property_obj.hotel_name = update_data["hotel_name"]
+        del update_data["hotel_name"]
+    if "name" in update_data and update_data["name"] is not None:
+        property_obj.hotel_name = update_data["name"]
+        del update_data["name"]
+    for field, value in update_data.items():
+        if value is not None:
+            setattr(property_obj, field, value)
     session.add(property_obj)
     await session.commit()
     await session.refresh(property_obj)

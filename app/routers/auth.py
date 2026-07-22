@@ -4,16 +4,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
-from ..core.dependencies import get_current_user
+from ..core.dependencies import get_current_user, get_current_user_optional
 from ..core.security import create_access_token, create_refresh_token, decode_token
 from ..crud.user import authenticate_user, create_user, get_user_by_email, get_user_by_id
 from ..database import get_async_session
-from ..schemas.user import Token, UserCreate, UserLogin, UserRead
+from ..schemas.user import ForgotPasswordRequest, ResetPasswordRequest, Token, UserCreate, UserLogin, UserRead
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=UserRead)
+@router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def register(user_in: UserCreate, session: AsyncSession = Depends(get_async_session)):
     existing_user = await get_user_by_email(session, user_in.email)
     if existing_user:
@@ -33,7 +33,13 @@ async def login(form_data: UserLogin, session: AsyncSession = Depends(get_async_
 
 
 @router.post("/refresh", response_model=Token)
-async def refresh(refresh_token: str | None = None, session: AsyncSession = Depends(get_async_session), current_user=Depends(get_current_user)):
+async def refresh(
+    refresh_token: str | None = None,
+    session: AsyncSession = Depends(get_async_session),
+    current_user=Depends(get_current_user_optional),
+):
+    user = None
+
     if refresh_token:
         try:
             payload = decode_token(refresh_token)
@@ -46,8 +52,10 @@ async def refresh(refresh_token: str | None = None, session: AsyncSession = Depe
         user = await get_user_by_id(session, str(payload.get("sub", "")))
         if user is None or not user.is_active:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive or invalid user")
-    else:
+    elif current_user:
         user = current_user
+    else:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
 
     access_token = create_access_token(subject=str(user.id), expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     next_refresh_token = create_refresh_token(subject=str(user.id))
@@ -60,10 +68,10 @@ async def logout():
 
 
 @router.post("/forgot-password")
-async def forgot_password(email: str):
+async def forgot_password(request: ForgotPasswordRequest):
     return {"detail": "Password reset flow not implemented."}
 
 
 @router.post("/reset-password")
-async def reset_password(token: str, new_password: str):
+async def reset_password(request: ResetPasswordRequest):
     return {"detail": "Password reset flow not implemented."}

@@ -1,9 +1,10 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
+from enum import Enum as PyEnum
 from typing import List, Optional
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.booking import Booking, BookingStatus
@@ -12,23 +13,46 @@ from ..schemas.booking import BookingCreate, BookingUpdate
 
 
 async def create_booking(session: AsyncSession, booking: BookingCreate, user_id: uuid.UUID) -> Booking:
+    check_in = booking.check_in_date or booking.check_in
+    check_out = booking.check_out_date or booking.check_out
+
+    if check_in is None or check_out is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Both check_in_date and check_out_date are required.",
+        )
+    if check_out <= check_in:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="check_out_date must be after check_in_date.",
+        )
+    if check_in < date.today():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="check_in_date cannot be in the past.",
+        )
+
     result = await session.execute(select(Room).where(Room.id == booking.room_id))
     room = result.scalar_one_or_none()
 
     if not room:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The requested room does not exist.")
 
+    conflicts = await get_conflicting_bookings(session, booking.room_id, check_in, check_out)
+    if conflicts:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This room is already booked for the selected dates.",
+        )
+
     db_booking = Booking(
         user_id=user_id,
         room_id=booking.room_id,
         status=BookingStatus.PENDING,
+        check_in=check_in,
+        check_out=check_out,
+        total_price=booking.total_price,
     )
-    if booking.check_in is not None:
-        db_booking.check_in = booking.check_in
-    if booking.check_out is not None:
-        db_booking.check_out = booking.check_out
-    if booking.total_price is not None:
-        db_booking.total_price = booking.total_price
     session.add(db_booking)
     await session.commit()
     await session.refresh(db_booking)
@@ -83,11 +107,15 @@ async def cancel_booking(session: AsyncSession, booking_id: uuid.UUID) -> Bookin
     return db_booking
 
 
-async def get_conflicting_bookings(session: AsyncSession, room_id: uuid.UUID, check_in: datetime, check_out: datetime) -> List[Booking]:
+async def get_conflicting_bookings(
+    session: AsyncSession, room_id: uuid.UUID, check_in: date, check_out: date
+) -> List[Booking]:
     result = await session.execute(
         select(Booking).where(
             Booking.room_id == room_id,
             Booking.status != BookingStatus.CANCELLED,
+            Booking.check_in < check_out,
+            Booking.check_out > check_in,
         )
     )
     return list(result.scalars().all())
@@ -98,9 +126,12 @@ async def list_bookings_for_guest(session: AsyncSession, user_id: uuid.UUID) -> 
     return list(result.scalars().all())
 
 
-async def list_bookings_for_host(session: AsyncSession, property_id: uuid.UUID) -> List[Booking]:
+async def list_bookings_for_host(session: AsyncSession, host_id: uuid.UUID) -> List[Booking]:
     result = await session.execute(
-        select(Booking).join(Room, Booking.room_id == Room.id).where(Room.property_id == property_id)
+        select(Booking)
+        .join(Room, Booking.room_id == Room.id)
+        .join(Property, Room.property_id == Property.id)
+        .where(Property.owner_id == host_id)
     )
     return list(result.scalars().all())
 
