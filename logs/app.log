@@ -1,0 +1,991 @@
+2026-07-20 13:53:33 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 13:53:33 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 13:53:34 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 13:53:34 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 13:53:35 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 13:53:35 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 13:53:36 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 13:53:36 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 13:53:36 | INFO | app.main | Database connection established successfully.
+2026-07-20 13:55:06 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 13:55:06 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 13:55:07 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 13:55:07 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 13:55:08 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 13:55:08 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 13:55:08 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 13:55:08 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 13:55:08 | INFO | app.main | Database connection established successfully.
+2026-07-20 14:00:08 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 14:00:08 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:00:08 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 14:00:08 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:00:09 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 14:00:09 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:00:10 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:00:10 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 14:00:10 | INFO | app.main | Database connection established successfully.
+2026-07-20 14:03:21 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:03:21 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.name, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true
+2026-07-20 14:03:21 | INFO | sqlalchemy.engine.Engine | [generated in 0.00040s] ()
+2026-07-20 14:03:21 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:03:22 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column properties.name does not exist
+[SQL: SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.name, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true]
+(Background on this error at: https://sqlalche.me/e/20/f405) | path=/api/v1/properties/
+2026-07-20 14:04:45 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 14:04:45 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:04:45 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 14:04:45 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:04:46 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 14:04:46 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:04:46 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:04:46 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 14:04:46 | INFO | app.main | Database connection established successfully.
+2026-07-20 14:05:12 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 14:05:12 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:05:13 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 14:05:13 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:05:14 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 14:05:14 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:05:15 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:05:15 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 14:05:15 | INFO | app.main | Database connection established successfully.
+2026-07-20 14:05:27 | ERROR | app.core.exceptions | Unhandled exception: name 'Property' is not defined | path=/api/v1/properties/
+Traceback (most recent call last):
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2531, in app
+    await route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1700, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2586, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1720, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1239, in handle
+    await app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\app\routers\properties.py", line 23, in search_properties
+    query = select(Property).where(Property.is_active == True)
+                   ^^^^^^^^
+NameError: name 'Property' is not defined. Did you mean: 'property'?
+2026-07-20 14:07:45 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 14:07:45 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:07:46 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 14:07:46 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:07:47 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 14:07:47 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:07:47 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:07:47 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 14:07:47 | INFO | app.main | Database connection established successfully.
+2026-07-20 14:08:11 | ERROR | app.core.exceptions | Unhandled exception: name 'Property' is not defined | path=/api/v1/properties/
+Traceback (most recent call last):
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2531, in app
+    await route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1700, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2586, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1720, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1239, in handle
+    await app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\app\routers\properties.py", line 23, in search_properties
+    session: AsyncSession = Depends(get_async_session),
+                   ^^^^^^^^
+NameError: name 'Property' is not defined. Did you mean: 'property'?
+2026-07-20 14:09:51 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 14:09:51 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:09:52 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 14:09:52 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:10:02 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 14:10:02 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:10:02 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:10:02 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 14:10:02 | INFO | app.main | Database connection established successfully.
+2026-07-20 14:10:09 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:10:09 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.name, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER
+2026-07-20 14:10:09 | INFO | sqlalchemy.engine.Engine | [generated in 0.00062s] (10, 0)
+2026-07-20 14:10:13 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:10:13 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column properties.name does not exist
+[SQL: SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.name, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER]
+[parameters: (10, 0)]
+(Background on this error at: https://sqlalche.me/e/20/f405) | path=/api/v1/properties/
+2026-07-20 14:17:29 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:17:29 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.name, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER
+2026-07-20 14:17:29 | INFO | sqlalchemy.engine.Engine | [cached since 439.6s ago] (10, 0)
+2026-07-20 14:17:30 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:17:31 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column properties.name does not exist
+[SQL: SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.name, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER]
+[parameters: (10, 0)]
+(Background on this error at: https://sqlalche.me/e/20/f405) | path=/api/v1/properties/
+2026-07-20 14:18:50 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 14:18:50 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:18:51 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 14:18:51 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:18:52 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 14:18:52 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:18:53 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:18:53 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 14:18:53 | INFO | app.main | Database connection established successfully.
+2026-07-20 14:19:02 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:19:02 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.name, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER
+2026-07-20 14:19:02 | INFO | sqlalchemy.engine.Engine | [cached since 533.2s ago] (10, 0)
+2026-07-20 14:19:03 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:19:03 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column properties.name does not exist
+[SQL: SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.name, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER]
+[parameters: (10, 0)]
+(Background on this error at: https://sqlalche.me/e/20/f405) | path=/api/v1/properties/
+2026-07-20 14:20:15 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 14:20:15 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:20:16 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 14:20:16 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:20:17 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 14:20:17 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:20:18 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:20:18 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 14:20:18 | INFO | app.main | Database connection established successfully.
+2026-07-20 14:20:30 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:20:30 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER
+2026-07-20 14:20:30 | INFO | sqlalchemy.engine.Engine | [generated in 0.00066s] (10, 0)
+2026-07-20 14:20:30 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:20:31 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column properties.description does not exist
+[SQL: SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER]
+[parameters: (10, 0)]
+(Background on this error at: https://sqlalche.me/e/20/f405) | path=/api/v1/properties/
+2026-07-20 14:27:32 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 14:27:32 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:27:33 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 14:27:33 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:27:34 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 14:27:34 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:27:35 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:27:35 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 14:27:35 | INFO | app.main | Database connection established successfully.
+2026-07-20 14:27:59 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:27:59 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER
+2026-07-20 14:27:59 | INFO | sqlalchemy.engine.Engine | [cached since 448.8s ago] (10, 0)
+2026-07-20 14:27:59 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:40:57 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 14:40:57 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:40:57 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 14:40:57 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:40:59 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 14:40:59 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:41:01 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:41:01 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 14:41:01 | INFO | app.main | Database connection established successfully.
+2026-07-20 14:41:22 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:41:22 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER
+2026-07-20 14:41:22 | INFO | sqlalchemy.engine.Engine | [cached since 1252s ago] (10, 0)
+2026-07-20 14:41:22 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:41:23 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:41:23 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.id = $1::UUID
+2026-07-20 14:41:23 | INFO | sqlalchemy.engine.Engine | [generated in 0.00063s] ('abc-123',)
+2026-07-20 14:41:24 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:41:24 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $1: 'abc-123' (invalid UUID 'abc-123': length must be between 32..36 characters, got 7)
+[SQL: SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.id = $1::UUID]
+[parameters: ('abc-123',)]
+(Background on this error at: https://sqlalche.me/e/20/dbapi) | path=/api/v1/properties/abc-123
+2026-07-20 14:41:25 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:41:25 | INFO | sqlalchemy.engine.Engine | SELECT reviews.id, reviews.booking_id, reviews.guest_id, reviews.property_id, reviews.rating, reviews.comment, reviews.host_response, reviews.created_at, reviews.updated_at 
+FROM reviews 
+WHERE reviews.property_id = $1::UUID
+2026-07-20 14:41:25 | INFO | sqlalchemy.engine.Engine | [generated in 0.00078s] ('abc-123',)
+2026-07-20 14:41:25 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:41:26 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $1: 'abc-123' (invalid UUID 'abc-123': length must be between 32..36 characters, got 7)
+[SQL: SELECT reviews.id, reviews.booking_id, reviews.guest_id, reviews.property_id, reviews.rating, reviews.comment, reviews.host_response, reviews.created_at, reviews.updated_at 
+FROM reviews 
+WHERE reviews.property_id = $1::UUID]
+[parameters: ('abc-123',)]
+(Background on this error at: https://sqlalche.me/e/20/dbapi) | path=/api/v1/reviews/property/abc-123
+2026-07-20 14:41:26 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:41:26 | INFO | sqlalchemy.engine.Engine | SELECT users.id, users.email, users.hashed_password, users.full_name, users.phone_number, users.role, users.is_active 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-07-20 14:41:26 | INFO | sqlalchemy.engine.Engine | [generated in 0.00041s] ('new@test.com',)
+2026-07-20 14:41:28 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:41:28 | ERROR | app.core.exceptions | Unhandled exception: type object 'UserRole' has no attribute 'coerce' | path=/api/v1/auth/register
+Traceback (most recent call last):
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2531, in app
+    await route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1700, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2586, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1720, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1239, in handle
+    await app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\app\routers\auth.py", line 21, in register
+    user = await create_user(session, user_in)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\app\crud\user.py", line 20, in create_user
+    role_value = UserRole.coerce(user_in.role)
+                 ^^^^^^^^^^^^^^^
+AttributeError: type object 'UserRole' has no attribute 'coerce'
+2026-07-20 14:41:29 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:41:29 | INFO | sqlalchemy.engine.Engine | SELECT users.id, users.email, users.hashed_password, users.full_name, users.phone_number, users.role, users.is_active 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-07-20 14:41:29 | INFO | sqlalchemy.engine.Engine | [cached since 3.054s ago] ('test@example.com',)
+2026-07-20 14:41:31 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:43:11 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 14:43:11 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:43:12 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 14:43:12 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:43:13 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 14:43:13 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:43:14 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:43:14 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 14:43:14 | INFO | app.main | Database connection established successfully.
+2026-07-20 14:43:47 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:43:47 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER
+2026-07-20 14:43:47 | INFO | sqlalchemy.engine.Engine | [generated in 0.00038s] (10, 0)
+2026-07-20 14:43:47 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:43:49 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:43:49 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.id = $1::UUID
+2026-07-20 14:43:49 | INFO | sqlalchemy.engine.Engine | [generated in 0.00058s] ('abc-123',)
+2026-07-20 14:43:49 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:43:49 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $1: 'abc-123' (invalid UUID 'abc-123': length must be between 32..36 characters, got 7)
+[SQL: SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.id = $1::UUID]
+[parameters: ('abc-123',)]
+(Background on this error at: https://sqlalche.me/e/20/dbapi) | path=/api/v1/properties/abc-123
+2026-07-20 14:43:50 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:43:50 | INFO | sqlalchemy.engine.Engine | SELECT reviews.id, reviews.booking_id, reviews.guest_id, reviews.property_id, reviews.rating, reviews.comment, reviews.host_response, reviews.created_at, reviews.updated_at 
+FROM reviews 
+WHERE reviews.property_id = $1::UUID
+2026-07-20 14:43:50 | INFO | sqlalchemy.engine.Engine | [generated in 0.00042s] ('abc-123',)
+2026-07-20 14:43:50 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:43:51 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $1: 'abc-123' (invalid UUID 'abc-123': length must be between 32..36 characters, got 7)
+[SQL: SELECT reviews.id, reviews.booking_id, reviews.guest_id, reviews.property_id, reviews.rating, reviews.comment, reviews.host_response, reviews.created_at, reviews.updated_at 
+FROM reviews 
+WHERE reviews.property_id = $1::UUID]
+[parameters: ('abc-123',)]
+(Background on this error at: https://sqlalche.me/e/20/dbapi) | path=/api/v1/reviews/property/abc-123
+2026-07-20 14:43:51 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:43:51 | INFO | sqlalchemy.engine.Engine | SELECT users.id, users.email, users.hashed_password, users.full_name, users.phone_number, users.role, users.is_active 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-07-20 14:43:51 | INFO | sqlalchemy.engine.Engine | [generated in 0.00038s] ('new@test.com',)
+2026-07-20 14:43:52 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:43:53 | ERROR | app.core.exceptions | Unhandled exception: type object 'UserRole' has no attribute 'coerce' | path=/api/v1/auth/register
+Traceback (most recent call last):
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2531, in app
+    await route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1700, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2586, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1720, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1239, in handle
+    await app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\app\routers\auth.py", line 21, in register
+    user = await create_user(session, user_in)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\app\crud\user.py", line 20, in create_user
+    role_value = UserRole.coerce(user_in.role)
+                 ^^^^^^^^^^^^^^^
+AttributeError: type object 'UserRole' has no attribute 'coerce'
+2026-07-20 14:43:54 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:43:54 | INFO | sqlalchemy.engine.Engine | SELECT users.id, users.email, users.hashed_password, users.full_name, users.phone_number, users.role, users.is_active 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-07-20 14:43:54 | INFO | sqlalchemy.engine.Engine | [cached since 2.478s ago] ('test@example.com',)
+2026-07-20 14:43:55 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:48:53 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 14:48:53 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:48:53 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 14:48:53 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:48:54 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 14:48:54 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:48:55 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:48:55 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 14:48:55 | INFO | app.main | Database connection established successfully.
+2026-07-20 14:49:20 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:49:20 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER
+2026-07-20 14:49:20 | INFO | sqlalchemy.engine.Engine | [cached since 333.4s ago] (10, 0)
+2026-07-20 14:49:21 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:49:22 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:49:22 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.id = $1::UUID
+2026-07-20 14:49:22 | INFO | sqlalchemy.engine.Engine | [cached since 333.3s ago] ('abc-123',)
+2026-07-20 14:49:22 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:49:22 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $1: 'abc-123' (invalid UUID 'abc-123': length must be between 32..36 characters, got 7)
+[SQL: SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.id = $1::UUID]
+[parameters: ('abc-123',)]
+(Background on this error at: https://sqlalche.me/e/20/dbapi) | path=/api/v1/properties/abc-123
+2026-07-20 14:49:23 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:49:23 | INFO | sqlalchemy.engine.Engine | SELECT reviews.id, reviews.booking_id, reviews.guest_id, reviews.property_id, reviews.rating, reviews.comment, reviews.host_response, reviews.created_at, reviews.updated_at 
+FROM reviews 
+WHERE reviews.property_id = $1::UUID
+2026-07-20 14:49:23 | INFO | sqlalchemy.engine.Engine | [cached since 333.3s ago] ('abc-123',)
+2026-07-20 14:49:23 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:49:23 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $1: 'abc-123' (invalid UUID 'abc-123': length must be between 32..36 characters, got 7)
+[SQL: SELECT reviews.id, reviews.booking_id, reviews.guest_id, reviews.property_id, reviews.rating, reviews.comment, reviews.host_response, reviews.created_at, reviews.updated_at 
+FROM reviews 
+WHERE reviews.property_id = $1::UUID]
+[parameters: ('abc-123',)]
+(Background on this error at: https://sqlalche.me/e/20/dbapi) | path=/api/v1/reviews/property/abc-123
+2026-07-20 14:49:24 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:49:24 | INFO | sqlalchemy.engine.Engine | SELECT users.id, users.email, users.hashed_password, users.full_name, users.phone_number, users.role, users.is_active 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-07-20 14:49:24 | INFO | sqlalchemy.engine.Engine | [cached since 332.8s ago] ('new@test.com',)
+2026-07-20 14:49:24 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:49:24 | ERROR | app.core.exceptions | Unhandled exception: type object 'UserRole' has no attribute 'coerce' | path=/api/v1/auth/register
+Traceback (most recent call last):
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2531, in app
+    await route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1700, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2586, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1720, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1239, in handle
+    await app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 690, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 344, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\app\routers\auth.py", line 21, in register
+    user = await create_user(session, user_in)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\app\crud\user.py", line 20, in create_user
+    role_value = UserRole.coerce(user_in.role)
+                 ^^^^^^^^^^^^^^^
+AttributeError: type object 'UserRole' has no attribute 'coerce'
+2026-07-20 14:49:25 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:49:25 | INFO | sqlalchemy.engine.Engine | SELECT users.id, users.email, users.hashed_password, users.full_name, users.phone_number, users.role, users.is_active 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-07-20 14:49:25 | INFO | sqlalchemy.engine.Engine | [cached since 333.9s ago] ('test@example.com',)
+2026-07-20 14:49:26 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:50:39 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 14:50:39 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:50:40 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 14:50:40 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:50:41 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 14:50:41 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 14:50:42 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:50:42 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 14:50:42 | INFO | app.main | Database connection established successfully.
+2026-07-20 14:51:36 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:51:36 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER
+2026-07-20 14:51:36 | INFO | sqlalchemy.engine.Engine | [generated in 0.00041s] (10, 0)
+2026-07-20 14:51:37 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:51:38 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:51:38 | INFO | sqlalchemy.engine.Engine | SELECT users.id, users.email, users.hashed_password, users.full_name, users.phone_number, users.role, users.is_active 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-07-20 14:51:38 | INFO | sqlalchemy.engine.Engine | [generated in 0.00134s] ('new@test.com',)
+2026-07-20 14:51:40 | INFO | sqlalchemy.engine.Engine | INSERT INTO users (id, email, hashed_password, full_name, phone_number, role, is_active) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::userrole, $7::BOOLEAN)
+2026-07-20 14:51:40 | INFO | sqlalchemy.engine.Engine | [generated in 0.00323s] (UUID('c5e44b6d-52d6-4932-916f-f83a6bf34c65'), 'new@test.com', '$2b$12$tmubSTSip4IYihZHeHhIo.1R56I56U.YfiRFd4oLRGULg2eBDc3TO', None, None, <UserRole.CONSUMER: 'consumer'>, True)
+2026-07-20 14:51:41 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 14:51:41 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum userrole: "consumer"
+[SQL: INSERT INTO users (id, email, hashed_password, full_name, phone_number, role, is_active) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::userrole, $7::BOOLEAN)]
+[parameters: (UUID('c5e44b6d-52d6-4932-916f-f83a6bf34c65'), 'new@test.com', '$2b$12$tmubSTSip4IYihZHeHhIo.1R56I56U.YfiRFd4oLRGULg2eBDc3TO', None, None, <UserRole.CONSUMER: 'consumer'>, True)]
+(Background on this error at: https://sqlalche.me/e/20/dbapi) | path=/api/v1/auth/register
+2026-07-20 14:51:42 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 14:51:42 | INFO | sqlalchemy.engine.Engine | SELECT users.id, users.email, users.hashed_password, users.full_name, users.phone_number, users.role, users.is_active 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-07-20 14:51:42 | INFO | sqlalchemy.engine.Engine | [cached since 3.492s ago] ('test@example.com',)
+2026-07-20 14:51:42 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 15:01:12 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 15:01:12 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 15:01:12 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 15:01:12 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 15:01:13 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 15:01:13 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 15:01:14 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 15:01:14 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 15:01:14 | INFO | app.main | Database connection established successfully.
+2026-07-20 15:01:55 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 15:01:55 | INFO | sqlalchemy.engine.Engine | SELECT properties.id, properties.owner_id, properties.hotel_name, properties.address, properties.contact, properties.description, properties.property_type, properties.city, properties.state, properties.country, properties.latitude, properties.longitude, properties.amenities, properties.images, properties.cancellation_policy, properties.is_verified, properties.avg_rating, properties.total_reviews, properties.created_at, properties.updated_at, properties.is_active, properties.balance, properties.bank_details 
+FROM properties 
+WHERE properties.is_active = true 
+ LIMIT $1::INTEGER OFFSET $2::INTEGER
+2026-07-20 15:01:55 | INFO | sqlalchemy.engine.Engine | [cached since 618.2s ago] (10, 0)
+2026-07-20 15:01:55 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 15:01:57 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 15:01:57 | INFO | sqlalchemy.engine.Engine | SELECT users.id, users.email, users.hashed_password, users.full_name, users.phone_number, users.role, users.is_active 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-07-20 15:01:57 | INFO | sqlalchemy.engine.Engine | [cached since 618.9s ago] ('new@test.com',)
+2026-07-20 15:01:59 | INFO | sqlalchemy.engine.Engine | INSERT INTO users (id, email, hashed_password, full_name, phone_number, role, is_active) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::userrole, $7::BOOLEAN)
+2026-07-20 15:01:59 | INFO | sqlalchemy.engine.Engine | [cached since 618.7s ago] (UUID('d93e390f-ab01-4920-92be-17fd6c9127be'), 'new@test.com', '$2b$12$9FyBpTAscRfAJ4SeVXqFIOlHrQhp140bKoUDGXU1RbbOO73Dtzo1q', None, None, <UserRole.CONSUMER: 'consumer'>, True)
+2026-07-20 15:02:00 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 15:02:00 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum userrole: "consumer"
+[SQL: INSERT INTO users (id, email, hashed_password, full_name, phone_number, role, is_active) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::userrole, $7::BOOLEAN)]
+[parameters: (UUID('d93e390f-ab01-4920-92be-17fd6c9127be'), 'new@test.com', '$2b$12$9FyBpTAscRfAJ4SeVXqFIOlHrQhp140bKoUDGXU1RbbOO73Dtzo1q', None, None, <UserRole.CONSUMER: 'consumer'>, True)]
+(Background on this error at: https://sqlalche.me/e/20/dbapi) | path=/api/v1/auth/register
+2026-07-20 15:02:01 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 15:02:01 | INFO | sqlalchemy.engine.Engine | SELECT users.id, users.email, users.hashed_password, users.full_name, users.phone_number, users.role, users.is_active 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-07-20 15:02:01 | INFO | sqlalchemy.engine.Engine | [cached since 622.2s ago] ('test@example.com',)
+2026-07-20 15:02:01 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 15:03:58 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 15:03:58 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 15:03:59 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 15:03:59 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 15:04:01 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 15:04:01 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 15:04:02 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 15:04:02 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 15:04:02 | INFO | app.main | Database connection established successfully.
+2026-07-20 15:04:25 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 15:04:25 | INFO | sqlalchemy.engine.Engine | SELECT users.id, users.email, users.hashed_password, users.full_name, users.phone_number, users.role, users.is_active 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-07-20 15:04:25 | INFO | sqlalchemy.engine.Engine | [generated in 0.00033s] ('new@test.com',)
+2026-07-20 15:04:27 | INFO | sqlalchemy.engine.Engine | INSERT INTO users (id, email, hashed_password, full_name, phone_number, role, is_active) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::userrole, $7::BOOLEAN)
+2026-07-20 15:04:27 | INFO | sqlalchemy.engine.Engine | [generated in 0.00065s] (UUID('3aab76a1-8876-4008-bf74-34d169f18513'), 'new@test.com', '$2b$12$LklEzwEvdaPoqK/UF2mLkuI1f2ugsFIVroz3cdf.5F5RInJrY0qn2', None, None, <UserRole.CONSUMER: 'consumer'>, True)
+2026-07-20 15:04:27 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 15:04:27 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum userrole: "consumer"
+[SQL: INSERT INTO users (id, email, hashed_password, full_name, phone_number, role, is_active) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::userrole, $7::BOOLEAN)]
+[parameters: (UUID('3aab76a1-8876-4008-bf74-34d169f18513'), 'new@test.com', '$2b$12$LklEzwEvdaPoqK/UF2mLkuI1f2ugsFIVroz3cdf.5F5RInJrY0qn2', None, None, <UserRole.CONSUMER: 'consumer'>, True)]
+(Background on this error at: https://sqlalche.me/e/20/dbapi) | path=/api/v1/auth/register
+2026-07-20 15:07:41 | INFO | sqlalchemy.engine.Engine | select pg_catalog.version()
+2026-07-20 15:07:41 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 15:07:41 | INFO | sqlalchemy.engine.Engine | select current_schema()
+2026-07-20 15:07:41 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 15:07:42 | INFO | sqlalchemy.engine.Engine | show standard_conforming_strings
+2026-07-20 15:07:42 | INFO | sqlalchemy.engine.Engine | [raw sql] ()
+2026-07-20 15:07:42 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 15:07:42 | INFO | sqlalchemy.engine.Engine | COMMIT
+2026-07-20 15:07:42 | INFO | app.main | Database connection established successfully.
+2026-07-20 15:08:05 | INFO | sqlalchemy.engine.Engine | BEGIN (implicit)
+2026-07-20 15:08:05 | INFO | sqlalchemy.engine.Engine | SELECT users.id, users.email, users.hashed_password, users.full_name, users.phone_number, users.role, users.is_active 
+FROM users 
+WHERE users.email = $1::VARCHAR
+2026-07-20 15:08:05 | INFO | sqlalchemy.engine.Engine | [generated in 0.00042s] ('new@test.com',)
+2026-07-20 15:08:07 | INFO | sqlalchemy.engine.Engine | INSERT INTO users (id, email, hashed_password, full_name, phone_number, role, is_active) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN)
+2026-07-20 15:08:07 | INFO | sqlalchemy.engine.Engine | [generated in 0.00048s] (UUID('ba1efc86-478e-4997-b152-27515d3df783'), 'new@test.com', '$2b$12$p/.UIC1UT7tlOaMOpZKdoOcK.vDo1ROqGqMvq31kvCRYEFYfYhRBG', None, None, 'CONSUMER', True)
+2026-07-20 15:08:07 | INFO | sqlalchemy.engine.Engine | ROLLBACK
+2026-07-20 15:08:08 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.DatatypeMismatchError'>: column "role" is of type userrole but expression is of type character varying
+HINT:  You will need to rewrite or cast the expression.
+[SQL: INSERT INTO users (id, email, hashed_password, full_name, phone_number, role, is_active) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN)]
+[parameters: (UUID('ba1efc86-478e-4997-b152-27515d3df783'), 'new@test.com', '$2b$12$p/.UIC1UT7tlOaMOpZKdoOcK.vDo1ROqGqMvq31kvCRYEFYfYhRBG', None, None, 'CONSUMER', True)]
+(Background on this error at: https://sqlalche.me/e/20/f405) | path=/api/v1/auth/register
+2026-07-20 15:28:55 | INFO | app.main | Database connection established successfully.
+2026-07-20 15:32:30 | INFO | app.main | Database connection established successfully.
+2026-07-20 15:36:57 | INFO | app.main | Database connection established successfully.
+2026-07-20 15:38:57 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.DatatypeMismatchError'>: column "role" is of type userrole but expression is of type character varying
+HINT:  You will need to rewrite or cast the expression.
+[SQL: INSERT INTO users (id, email, hashed_password, full_name, phone_number, role, is_active) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::BOOLEAN)]
+[parameters: (UUID('f4711044-5202-426e-ba87-4f29d2db432c'), 'test-60d1496c@example.com', '$2b$12$GvsWzzUcHALxG/2dHea/NuPcWA6ZBgX4e1nDtSAbJQk1z0Jha7w9e', None, None, 'CONSUMER', True)]
+(Background on this error at: https://sqlalche.me/e/20/f405) | path=/api/v1/auth/register
+2026-07-20 15:40:56 | INFO | app.main | Database connection established successfully.
+2026-07-20 15:48:11 | INFO | app.main | Database connection established successfully.
+2026-07-20 15:54:38 | INFO | app.main | Database connection established successfully.
+2026-07-20 15:54:41 | INFO | watchfiles.main | 1 change detected
+2026-07-20 15:54:42 | INFO | watchfiles.main | 1 change detected
+2026-07-20 15:58:01 | ERROR | app.core.exceptions | Unhandled exception: 2 validation errors:
+  {'type': 'string_type', 'loc': ('response', 'id'), 'msg': 'Input should be a valid string', 'input': UUID('719ad890-ca67-4537-b8f0-0d463e2172ba')}
+  {'type': 'string_type', 'loc': ('response', 'host_id'), 'msg': 'Input should be a valid string', 'input': UUID('89ba24e8-2a53-416b-962b-2e52ecafac94')}
+
+  File "D:\spaces bk\backend\app\routers\properties.py", line 53, in create_property_endpoint
+    POST /api/v1/properties/ | path=/api/v1/properties/
+Traceback (most recent call last):
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\gzip.py", line 29, in __call__
+    await responder(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\gzip.py", line 130, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\gzip.py", line 46, in __call__
+    await self.app(scope, receive, self.send_with_compression)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2531, in app
+    await route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1700, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2586, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1720, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1239, in handle
+    await app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 711, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 316, in serialize_response
+    raise ResponseValidationError(
+    ...<3 lines>...
+    )
+fastapi.exceptions.ResponseValidationError: 2 validation errors:
+  {'type': 'string_type', 'loc': ('response', 'id'), 'msg': 'Input should be a valid string', 'input': UUID('719ad890-ca67-4537-b8f0-0d463e2172ba')}
+  {'type': 'string_type', 'loc': ('response', 'host_id'), 'msg': 'Input should be a valid string', 'input': UUID('89ba24e8-2a53-416b-962b-2e52ecafac94')}
+
+  File "D:\spaces bk\backend\app\routers\properties.py", line 53, in create_property_endpoint
+    POST /api/v1/properties/
+2026-07-20 16:24:07 | INFO | app.main | Database connection established successfully.
+2026-07-20 16:24:07 | INFO | watchfiles.main | 1 change detected
+2026-07-20 16:24:07 | INFO | watchfiles.main | 1 change detected
+2026-07-20 16:30:33 | ERROR | app.core.exceptions | Unhandled exception: 2 validation errors:
+  {'type': 'string_type', 'loc': ('response', 'id'), 'msg': 'Input should be a valid string', 'input': UUID('55087cfc-6eda-403a-a790-ceb904e59ff3')}
+  {'type': 'string_type', 'loc': ('response', 'host_id'), 'msg': 'Input should be a valid string', 'input': UUID('de0aed10-8b1e-44a3-ad24-aa6eb1ee6abe')}
+
+  File "D:\spaces bk\backend\app\routers\properties.py", line 53, in create_property_endpoint
+    POST /api/v1/properties/ | path=/api/v1/properties/
+Traceback (most recent call last):
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\gzip.py", line 29, in __call__
+    await responder(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\gzip.py", line 130, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\gzip.py", line 46, in __call__
+    await self.app(scope, receive, self.send_with_compression)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2531, in app
+    await route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1700, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2586, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1720, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1239, in handle
+    await app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 711, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 316, in serialize_response
+    raise ResponseValidationError(
+    ...<3 lines>...
+    )
+fastapi.exceptions.ResponseValidationError: 2 validation errors:
+  {'type': 'string_type', 'loc': ('response', 'id'), 'msg': 'Input should be a valid string', 'input': UUID('55087cfc-6eda-403a-a790-ceb904e59ff3')}
+  {'type': 'string_type', 'loc': ('response', 'host_id'), 'msg': 'Input should be a valid string', 'input': UUID('de0aed10-8b1e-44a3-ad24-aa6eb1ee6abe')}
+
+  File "D:\spaces bk\backend\app\routers\properties.py", line 53, in create_property_endpoint
+    POST /api/v1/properties/
+2026-07-20 16:31:19 | ERROR | app.core.exceptions | Unhandled exception: 4 validation errors:
+  {'type': 'string_type', 'loc': ('response', 0, 'id'), 'msg': 'Input should be a valid string', 'input': UUID('719ad890-ca67-4537-b8f0-0d463e2172ba')}
+  {'type': 'string_type', 'loc': ('response', 0, 'host_id'), 'msg': 'Input should be a valid string', 'input': UUID('89ba24e8-2a53-416b-962b-2e52ecafac94')}
+  {'type': 'string_type', 'loc': ('response', 1, 'id'), 'msg': 'Input should be a valid string', 'input': UUID('55087cfc-6eda-403a-a790-ceb904e59ff3')}
+  {'type': 'string_type', 'loc': ('response', 1, 'host_id'), 'msg': 'Input should be a valid string', 'input': UUID('de0aed10-8b1e-44a3-ad24-aa6eb1ee6abe')}
+
+  File "D:\spaces bk\backend\app\routers\properties.py", line 16, in search_properties
+    GET /api/v1/properties/ | path=/api/v1/properties/
+Traceback (most recent call last):
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\gzip.py", line 29, in __call__
+    await responder(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\gzip.py", line 130, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\gzip.py", line 46, in __call__
+    await self.app(scope, receive, self.send_with_compression)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2531, in app
+    await route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1700, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2586, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1720, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1239, in handle
+    await app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 711, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 316, in serialize_response
+    raise ResponseValidationError(
+    ...<3 lines>...
+    )
+fastapi.exceptions.ResponseValidationError: 4 validation errors:
+  {'type': 'string_type', 'loc': ('response', 0, 'id'), 'msg': 'Input should be a valid string', 'input': UUID('719ad890-ca67-4537-b8f0-0d463e2172ba')}
+  {'type': 'string_type', 'loc': ('response', 0, 'host_id'), 'msg': 'Input should be a valid string', 'input': UUID('89ba24e8-2a53-416b-962b-2e52ecafac94')}
+  {'type': 'string_type', 'loc': ('response', 1, 'id'), 'msg': 'Input should be a valid string', 'input': UUID('55087cfc-6eda-403a-a790-ceb904e59ff3')}
+  {'type': 'string_type', 'loc': ('response', 1, 'host_id'), 'msg': 'Input should be a valid string', 'input': UUID('de0aed10-8b1e-44a3-ad24-aa6eb1ee6abe')}
+
+  File "D:\spaces bk\backend\app\routers\properties.py", line 16, in search_properties
+    GET /api/v1/properties/
+2026-07-20 16:33:31 | ERROR | app.core.exceptions | Unhandled exception: 2 validation errors:
+  {'type': 'string_type', 'loc': ('response', 'id'), 'msg': 'Input should be a valid string', 'input': UUID('55087cfc-6eda-403a-a790-ceb904e59ff3')}
+  {'type': 'string_type', 'loc': ('response', 'host_id'), 'msg': 'Input should be a valid string', 'input': UUID('de0aed10-8b1e-44a3-ad24-aa6eb1ee6abe')}
+
+  File "D:\spaces bk\backend\app\routers\properties.py", line 45, in read_property
+    GET /api/v1/properties/{property_id} | path=/api/v1/properties/55087cfc-6eda-403a-a790-ceb904e59ff3
+Traceback (most recent call last):
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\gzip.py", line 29, in __call__
+    await responder(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\gzip.py", line 130, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\gzip.py", line 46, in __call__
+    await self.app(scope, receive, self.send_with_compression)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2531, in app
+    await route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1700, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 2586, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1720, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 1239, in handle
+    await app(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\spaces bk\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 711, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "D:\spaces bk\backend\venv\Lib\site-packages\fastapi\routing.py", line 316, in serialize_response
+    raise ResponseValidationError(
+    ...<3 lines>...
+    )
+fastapi.exceptions.ResponseValidationError: 2 validation errors:
+  {'type': 'string_type', 'loc': ('response', 'id'), 'msg': 'Input should be a valid string', 'input': UUID('55087cfc-6eda-403a-a790-ceb904e59ff3')}
+  {'type': 'string_type', 'loc': ('response', 'host_id'), 'msg': 'Input should be a valid string', 'input': UUID('de0aed10-8b1e-44a3-ad24-aa6eb1ee6abe')}
+
+  File "D:\spaces bk\backend\app\routers\properties.py", line 45, in read_property
+    GET /api/v1/properties/{property_id}
+2026-07-20 16:39:32 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column bookings.check_in does not exist
+[SQL: SELECT bookings.id, bookings.room_id, bookings.user_id, bookings.status, bookings.check_in, bookings.check_out, bookings.total_price, bookings.created_at 
+FROM bookings 
+WHERE bookings.room_id = $1::UUID AND bookings.status != $2 AND bookings.check_in < $3::DATE AND bookings.check_out > $4::DATE]
+[parameters: (UUID('7d466d1d-b8de-4783-9abc-fc65e7943863'), 'CANCELLED', datetime.date(2026, 7, 26), datetime.date(2026, 7, 20))]
+(Background on this error at: https://sqlalche.me/e/20/f405) | path=/api/v1/bookings/
+2026-07-20 16:40:31 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column bookings.check_in does not exist
+[SQL: SELECT bookings.id, bookings.room_id, bookings.user_id, bookings.status, bookings.check_in, bookings.check_out, bookings.total_price, bookings.created_at 
+FROM bookings 
+WHERE bookings.room_id = $1::UUID AND bookings.status != $2 AND bookings.check_in < $3::DATE AND bookings.check_out > $4::DATE]
+[parameters: (UUID('7d466d1d-b8de-4783-9abc-fc65e7943863'), 'CANCELLED', datetime.date(2026, 7, 27), datetime.date(2026, 7, 26))]
+(Background on this error at: https://sqlalche.me/e/20/f405) | path=/api/v1/bookings/
+2026-07-20 16:40:57 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column bookings.check_in does not exist
+[SQL: SELECT bookings.id, bookings.room_id, bookings.user_id, bookings.status, bookings.check_in, bookings.check_out, bookings.total_price, bookings.created_at 
+FROM bookings 
+WHERE bookings.room_id = $1::UUID AND bookings.status != $2 AND bookings.check_in < $3::DATE AND bookings.check_out > $4::DATE]
+[parameters: (UUID('7d466d1d-b8de-4783-9abc-fc65e7943863'), 'CANCELLED', datetime.date(2026, 7, 27), datetime.date(2026, 7, 26))]
+(Background on this error at: https://sqlalche.me/e/20/f405) | path=/api/v1/bookings/
+2026-07-20 16:43:43 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.IntegrityError) <class 'asyncpg.exceptions.UniqueViolationError'>: duplicate key value violates unique constraint "properties_owner_id_key"
+DETAIL:  Key (owner_id)=(89ba24e8-2a53-416b-962b-2e52ecafac94) already exists.
+[SQL: INSERT INTO properties (id, owner_id, hotel_name, address, contact, description, property_type, city, state, country, latitude, longitude, amenities, images, cancellation_policy, is_verified, avg_rating, total_reviews, created_at, updated_at, is_active, balance) VALUES ($1::UUID, $2::UUID, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::VARCHAR, $11::FLOAT, $12::FLOAT, $13::JSON, $14::JSON, $15::VARCHAR, $16::BOOLEAN, $17::FLOAT, $18::INTEGER, $19::TIMESTAMP WITH TIME ZONE, $20::TIMESTAMP WITH TIME ZONE, $21::BOOLEAN, $22::NUMERIC(10, 2))]
+[parameters: (UUID('248a00f4-3159-4455-82ef-e72591117035'), '89ba24e8-2a53-416b-962b-2e52ecafac94', 'string002', 'string', 'string', 'string', 'hotel', 'string', 'string', 'Nigeria', 0.0, 0.0, '["string"]', '["https://example.com/"]', 'flexible', False, 0.0, 0, datetime.datetime(2026, 7, 20, 15, 43, 42, 729110), datetime.datetime(2026, 7, 20, 15, 43, 42, 729123), True, 0.0)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) | path=/api/v1/properties/
+2026-07-20 16:44:51 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.IntegrityError) <class 'asyncpg.exceptions.UniqueViolationError'>: duplicate key value violates unique constraint "properties_owner_id_key"
+DETAIL:  Key (owner_id)=(89ba24e8-2a53-416b-962b-2e52ecafac94) already exists.
+[SQL: INSERT INTO properties (id, owner_id, hotel_name, address, contact, description, property_type, city, state, country, latitude, longitude, amenities, images, cancellation_policy, is_verified, avg_rating, total_reviews, created_at, updated_at, is_active, balance) VALUES ($1::UUID, $2::UUID, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::VARCHAR, $11::FLOAT, $12::FLOAT, $13::JSON, $14::JSON, $15::VARCHAR, $16::BOOLEAN, $17::FLOAT, $18::INTEGER, $19::TIMESTAMP WITH TIME ZONE, $20::TIMESTAMP WITH TIME ZONE, $21::BOOLEAN, $22::NUMERIC(10, 2))]
+[parameters: (UUID('b613428e-6219-45c4-b329-5330593560c4'), '89ba24e8-2a53-416b-962b-2e52ecafac94', 'string002', 'string', 'string7', 'string6', 'hotel', 'string', 'string', 'Nigeria', 0.0, 0.0, '["string"]', '["https://example.com/"]', 'flexible', False, 0.0, 0, datetime.datetime(2026, 7, 20, 15, 44, 50, 860000), datetime.datetime(2026, 7, 20, 15, 44, 50, 860005), True, 0.0)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) | path=/api/v1/properties/
+2026-07-20 16:47:14 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column bookings.check_in does not exist
+[SQL: SELECT bookings.id, bookings.room_id, bookings.user_id, bookings.status, bookings.check_in, bookings.check_out, bookings.total_price, bookings.created_at 
+FROM bookings 
+WHERE bookings.room_id = $1::UUID AND bookings.status != $2 AND bookings.check_in < $3::DATE AND bookings.check_out > $4::DATE]
+[parameters: (UUID('7d466d1d-b8de-4783-9abc-fc65e7943863'), 'CANCELLED', datetime.date(2026, 7, 27), datetime.date(2026, 7, 26))]
+(Background on this error at: https://sqlalche.me/e/20/f405) | path=/api/v1/bookings/
+2026-07-20 16:57:41 | ERROR | app.core.exceptions | SQLAlchemyError: (sqlalchemy.dialects.postgresql.asyncpg.IntegrityError) <class 'asyncpg.exceptions.UniqueViolationError'>: duplicate key value violates unique constraint "properties_owner_id_key"
+DETAIL:  Key (owner_id)=(89ba24e8-2a53-416b-962b-2e52ecafac94) already exists.
+[SQL: INSERT INTO properties (id, owner_id, hotel_name, address, contact, description, property_type, city, state, country, latitude, longitude, amenities, images, cancellation_policy, is_verified, avg_rating, total_reviews, created_at, updated_at, is_active, balance) VALUES ($1::UUID, $2::UUID, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::VARCHAR, $9::VARCHAR, $10::VARCHAR, $11::FLOAT, $12::FLOAT, $13::JSON, $14::JSON, $15::VARCHAR, $16::BOOLEAN, $17::FLOAT, $18::INTEGER, $19::TIMESTAMP WITH TIME ZONE, $20::TIMESTAMP WITH TIME ZONE, $21::BOOLEAN, $22::NUMERIC(10, 2))]
+[parameters: (UUID('bec0ec11-e1be-403f-b1c7-f3dfeadc27a8'), '89ba24e8-2a53-416b-962b-2e52ecafac94', 'string00244', 'string', 'string7', 'string63', 'hotel', 'string', 'string', 'Nigeria', 0.0, 0.0, '["string"]', '["https://example.com/"]', 'flexible', False, 0.0, 0, datetime.datetime(2026, 7, 20, 15, 57, 40, 794855), datetime.datetime(2026, 7, 20, 15, 57, 40, 794859), True, 0.0)]
+(Background on this error at: https://sqlalche.me/e/20/gkpj) | path=/api/v1/properties/
