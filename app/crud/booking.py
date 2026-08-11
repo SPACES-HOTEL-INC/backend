@@ -7,6 +7,8 @@ from fastapi import HTTPException, status
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+# Add the Property model to your model imports here:
+from ..models.property import Property
 from ..models.booking import Booking, BookingStatus
 from ..models.room import Room
 from ..schemas.booking import BookingCreate, BookingUpdate
