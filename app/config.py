@@ -20,12 +20,17 @@ class Settings(BaseSettings):
             return self.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60
         return 10080
 
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_DB: str = "spaces"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
     DATABASE_URL: str | None = None
+
+    # Cloudinary Configuration
+    CLOUDINARY_CLOUD_NAME: str = ""
+    CLOUDINARY_API_KEY: str = ""
+    CLOUDINARY_API_SECRET: str = ""
 
     CORS_ORIGINS: List[str] = ["http://localhost:3000"]
 
@@ -46,6 +51,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
+        extra="ignore",
     )
 
     def __init__(self, **kwargs):
@@ -57,7 +63,7 @@ class Settings(BaseSettings):
         if len(self.SECRET_KEY) < 32:
             raise ValueError(
                 "SECRET_KEY must be at least 32 characters long. "
-                "Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+                'Generate one with: python -c "import secrets; print(secrets.token_urlsafe(32))"'
             )
         if self.SECRET_KEY in {"change-me", "secret", "wealthy_secret_key", "your-secret-key"}:
             raise ValueError(
@@ -76,7 +82,13 @@ class Settings(BaseSettings):
     @property
     def database_url(self) -> str:
         if self.DATABASE_URL:
+            # Fix standard Render/Heroku postgres:// scheme if present
+            if self.DATABASE_URL.startswith("postgres://"):
+                return self.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+            if self.DATABASE_URL.startswith("postgresql://"):
+                return self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
             return self.DATABASE_URL
+
         return (
             f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
