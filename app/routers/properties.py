@@ -1,4 +1,6 @@
 import json
+import os
+import shutil
 import uuid
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy import select, func
@@ -12,6 +14,9 @@ from ..models.room import Room
 from ..schemas.property import PropertyCreate, PropertyRead, PropertyUpdate
 
 router = APIRouter(prefix="/api/v1/properties", tags=["properties"])
+
+UPLOAD_DIR = "static/uploads/properties"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 @router.get("/", response_model=list[PropertyRead])
@@ -79,21 +84,45 @@ async def create_property_endpoint(
 
     normalized_type = property_type.strip().lower() if property_type else property_type
 
+    # Save uploaded images to disk
+    saved_image_urls: list[str] = []
+    for img in images:
+        if img.filename:
+            file_ext = os.path.splitext(img.filename)[1]
+            unique_filename = f"{uuid.uuid4().hex}{file_ext}"
+            file_path = os.path.join(UPLOAD_DIR, unique_filename)
+
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(img.file, buffer)
+
+            saved_image_urls.append(f"/static/uploads/properties/{unique_filename}")
+
+    primary_image_url = saved_image_urls[0] if saved_image_urls else None
+
     # Format phone and email into single contact string
     contact_parts = [c.strip() for c in [phone, email] if c and c.strip()]
     contact_info = " | ".join(contact_parts) if contact_parts else None
 
-    property_in = PropertyCreate(
-        hotel_name=name,
-        property_type=normalized_type,
-        address=address,
-        city=city,
-        state=state,
-        country=country,
-        contact=contact_info,
-        description=description,
-        amenities=parsed_amenities,
-    )
+    create_data = {
+        "hotel_name": name,
+        "property_type": normalized_type,
+        "address": address,
+        "city": city,
+        "state": state,
+        "country": country,
+        "contact": contact_info,
+        "description": description,
+        "amenities": parsed_amenities,
+    }
+
+    # Populate image fields dynamically if present on PropertyCreate schema
+    schema_fields = getattr(PropertyCreate, "__fields__", getattr(PropertyCreate, "model_fields", {}))
+    if "image_url" in schema_fields:
+        create_data["image_url"] = primary_image_url
+    if "images" in schema_fields:
+        create_data["images"] = saved_image_urls
+
+    property_in = PropertyCreate(**create_data)
 
     return await create_property(session, str(user.id), property_in)
 
