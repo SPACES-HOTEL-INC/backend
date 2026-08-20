@@ -1,8 +1,8 @@
 import uuid
-from datetime import date, datetime
+from datetime import datetime, timezone
 from enum import Enum as PyEnum
 
-from sqlalchemy import Column, Date, DateTime, Enum as SQLEnum, Float, ForeignKey
+from sqlalchemy import Column, DateTime, Enum as SQLEnum, Float, ForeignKey, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -23,11 +23,19 @@ class Booking(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     room_id = Column(UUID(as_uuid=True), ForeignKey("rooms.id"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    status = Column(SQLEnum(BookingStatus, native_enum=False), nullable=False, default=BookingStatus.PENDING)
-    check_in = Column(Date, nullable=True)
-    check_out = Column(Date, nullable=True)
+    status = Column(
+        SQLEnum(BookingStatus, native_enum=False),
+        nullable=False,
+        default=BookingStatus.PENDING,
+    )
+    check_in = Column(DateTime(timezone=True), nullable=True)
+    check_out = Column(DateTime(timezone=True), nullable=True)
     total_price = Column(Float, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        default=lambda: datetime.now(timezone.utc),
+    )
 
     room = relationship("Room", back_populates="bookings")
     user = relationship("User", back_populates="bookings")
