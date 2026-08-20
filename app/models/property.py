@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, JSON, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
@@ -12,7 +12,7 @@ class Property(Base):
     __tablename__ = "properties"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, unique=True)
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     hotel_name = Column(String, nullable=False)
     address = Column(String, nullable=False)
     contact = Column(String, nullable=False)
@@ -30,14 +30,14 @@ class Property(Base):
     is_verified = Column(Boolean, default=False, nullable=False)
     avg_rating = Column(Float, default=0.0, nullable=False)
     total_reviews = Column(Integer, default=0, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
 
     balance = Column(Numeric(10, 2), default=0.00)
     bank_details = Column(JSON, nullable=True)
 
-    owner = relationship("User", back_populates="owned_property")
+    owner = relationship("User", back_populates="owned_properties")
     rooms = relationship("Room", back_populates="property", cascade="all, delete-orphan")
     reviews = relationship("Review", back_populates="property")
 
