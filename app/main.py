@@ -1,9 +1,11 @@
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
 from .config import settings
@@ -13,6 +15,9 @@ from .database import Base, engine
 from .routers import auth, bookings, payments, properties, reviews, rooms, users
 
 logging.setup_logging()
+
+# Ensure local upload directories exist
+os.makedirs("static/uploads/properties", exist_ok=True)
 
 
 @asynccontextmanager
@@ -37,6 +42,9 @@ app = FastAPI(
     docs_url="/docs" if settings.ENV != "production" else None,
     redoc_url="/redoc" if settings.ENV != "production" else None,
 )
+
+# Mount static files directory to serve uploaded images publicly
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
