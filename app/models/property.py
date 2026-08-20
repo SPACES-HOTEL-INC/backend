@@ -37,7 +37,7 @@ class Property(Base):
     balance = Column(Numeric(10, 2), default=0.00)
     bank_details = Column(JSON, nullable=True)
 
-    owner = relationship("User", back_populates="owned_properties")
+    owner = relationship("User", back_populates="owned_property")
     rooms = relationship("Room", back_populates="property", cascade="all, delete-orphan")
     reviews = relationship("Review", back_populates="property")
 
