@@ -1,5 +1,6 @@
+import json
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,6 +43,11 @@ async def search_properties(
     return result.scalars().all()
 
 
+@router.get("/mine", response_model=list[PropertyRead])
+async def read_my_properties(user=Depends(require_host), session: AsyncSession = Depends(get_async_session)):
+    return await list_host_properties(session, str(user.id))
+
+
 @router.get("/{property_id}", response_model=PropertyRead)
 async def read_property(property_id: uuid.UUID, session: AsyncSession = Depends(get_async_session)):
     property_obj = await get_property_by_id(session, str(property_id))
@@ -51,12 +57,49 @@ async def read_property(property_id: uuid.UUID, session: AsyncSession = Depends(
 
 
 @router.post("/", response_model=PropertyRead, status_code=status.HTTP_201_CREATED)
-async def create_property_endpoint(property_in: PropertyCreate, user=Depends(require_host), session: AsyncSession = Depends(get_async_session)):
+async def create_property_endpoint(
+    name: str = Form(...),
+    property_type: str = Form(...),
+    address: str = Form(...),
+    city: str | None = Form(None),
+    state: str | None = Form(None),
+    country: str | None = Form("Nigeria"),
+    phone: str | None = Form(None),
+    email: str | None = Form(None),
+    description: str | None = Form(None),
+    amenities: str | None = Form("[]"),
+    images: list[UploadFile] = File(default=[]),
+    user=Depends(require_host),
+    session: AsyncSession = Depends(get_async_session),
+):
+    try:
+        parsed_amenities = json.loads(amenities) if amenities else []
+    except Exception:
+        parsed_amenities = []
+
+    property_in = PropertyCreate(
+        name=name,
+        property_type=property_type,
+        address=address,
+        city=city,
+        state=state,
+        country=country,
+        phone=phone,
+        email=email,
+        description=description,
+        amenities=parsed_amenities,
+    )
+
     return await create_property(session, str(user.id), property_in)
 
 
 @router.put("/{property_id}", response_model=PropertyRead)
-async def update_property_endpoint(property_id: uuid.UUID, property_in: PropertyUpdate, user=Depends(require_host), session: AsyncSession = Depends(get_async_session)):
+async def update_property_endpoint(
+    property_id: uuid.UUID,
+    property_in: PropertyUpdate,
+    user=Depends(require_host),
+    session: AsyncSession = Depends(get_async_session),
+):
     property_obj = await get_property_by_id(session, str(property_id))
     if not property_obj or str(property_obj.owner_id) != str(user.id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found or not owned")
@@ -64,20 +107,23 @@ async def update_property_endpoint(property_id: uuid.UUID, property_in: Property
 
 
 @router.delete("/{property_id}", response_model=PropertyRead)
-async def delete_property_endpoint(property_id: uuid.UUID, user=Depends(require_host), session: AsyncSession = Depends(get_async_session)):
+async def delete_property_endpoint(
+    property_id: uuid.UUID,
+    user=Depends(require_host),
+    session: AsyncSession = Depends(get_async_session),
+):
     property_obj = await get_property_by_id(session, str(property_id))
     if not property_obj or (str(property_obj.owner_id) != str(user.id) and not user.is_admin):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found or not owned")
     return await deactivate_property(session, property_obj)
 
 
-@router.get("/mine", response_model=list[PropertyRead])
-async def read_my_properties(user=Depends(require_host), session: AsyncSession = Depends(get_async_session)):
-    return await list_host_properties(session, str(user.id))
-
-
 @router.patch("/{property_id}/verify", response_model=PropertyRead)
-async def verify_property_endpoint(property_id: uuid.UUID, user=Depends(require_admin), session: AsyncSession = Depends(get_async_session)):
+async def verify_property_endpoint(
+    property_id: uuid.UUID,
+    user=Depends(require_admin),
+    session: AsyncSession = Depends(get_async_session),
+):
     property_obj = await get_property_by_id(session, str(property_id))
     if not property_obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found")
