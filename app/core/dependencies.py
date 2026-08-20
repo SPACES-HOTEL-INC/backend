@@ -15,13 +15,32 @@ async def get_current_user(
     session: AsyncSession = Depends(get_async_session),
 ) -> User:
     token = credentials.credentials
-    payload = decode_token(token)
+    
+    # Catch token parsing/decoding errors gracefully
+    try:
+        payload = decode_token(token)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     user_id = payload.get("sub")
     if user_id is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     user = await get_user_by_id(session, user_id)
     if user is None or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive or invalid user")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Inactive or invalid user",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     return user
 
 
@@ -34,11 +53,13 @@ async def get_current_user_optional(
     token = credentials.credentials
     try:
         payload = decode_token(token)
-    except ValueError:
+    except Exception:
         return None
+
     user_id = payload.get("sub")
     if user_id is None:
         return None
+
     user = await get_user_by_id(session, user_id)
     if user is None or not user.is_active:
         return None
