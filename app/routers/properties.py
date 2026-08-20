@@ -29,7 +29,7 @@ async def search_properties(
     if city:
         query = query.where(func.lower(Property.city) == city.lower())
     if property_type:
-        query = query.where(Property.property_type == property_type)
+        query = query.where(func.lower(Property.property_type) == property_type.strip().lower())
     if min_price is not None or max_price is not None:
         query = query.join(Room, Property.id == Room.property_id)
         if min_price is not None:
@@ -75,11 +75,13 @@ async def create_property_endpoint(
     try:
         parsed_amenities = json.loads(amenities) if amenities else []
     except Exception:
-        parsed_amenities = []
+        parsed_amenities = [a.strip() for a in amenities.split(",") if a.strip()] if amenities else []
+
+    normalized_type = property_type.strip().lower() if property_type else property_type
 
     property_in = PropertyCreate(
-        name=name,
-        property_type=property_type,
+        hotel_name=name,
+        property_type=normalized_type,
         address=address,
         city=city,
         state=state,

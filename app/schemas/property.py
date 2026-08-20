@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, HttpUrl, model_validator
+from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator, model_validator
 
 
 class PropertyBase(BaseModel):
@@ -17,8 +17,24 @@ class PropertyBase(BaseModel):
     amenities: list[str] | None = None
     images: list[HttpUrl] | None = None
     contact: str | None = None
+    phone: str | None = None
+    email: str | None = None
     cancellation_policy: Literal["flexible", "moderate", "strict"] = "flexible"
     is_active: bool | None = True
+
+    @field_validator("property_type", mode="before")
+    @classmethod
+    def normalize_property_type(cls, v: str | None) -> str | None:
+        if isinstance(v, str):
+            return v.strip().lower()
+        return v
+
+    @field_validator("cancellation_policy", mode="before")
+    @classmethod
+    def normalize_cancellation_policy(cls, v: str | None) -> str | None:
+        if isinstance(v, str):
+            return v.strip().lower()
+        return v
 
     @model_validator(mode="before")
     @classmethod
@@ -28,6 +44,10 @@ class PropertyBase(BaseModel):
                 values["hotel_name"] = values["name"]
             if values.get("address") is None and values.get("city"):
                 values["address"] = values["city"]
+            if not values.get("contact"):
+                contacts = [c for c in [values.get("phone"), values.get("email")] if c]
+                if contacts:
+                    values["contact"] = " | ".join(contacts)
         return values
 
 
@@ -48,8 +68,17 @@ class PropertyUpdate(BaseModel):
     amenities: list[str] | None = None
     images: list[HttpUrl] | None = None
     contact: str | None = None
+    phone: str | None = None
+    email: str | None = None
     cancellation_policy: Literal["flexible", "moderate", "strict"] | None = None
     is_active: bool | None = None
+
+    @field_validator("property_type", "cancellation_policy", mode="before")
+    @classmethod
+    def normalize_enums(cls, v: str | None) -> str | None:
+        if isinstance(v, str):
+            return v.strip().lower()
+        return v
 
 
 class PropertyRead(PropertyBase):
