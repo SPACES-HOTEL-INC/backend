@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from typing import Literal
 
@@ -74,8 +75,8 @@ class PropertyUpdate(BaseModel):
 
 
 class PropertyRead(PropertyBase):
-    id: str
-    host_id: str
+    id: uuid.UUID
+    host_id: uuid.UUID
     is_verified: bool = False
     avg_rating: float = 0.0
     total_reviews: int = 0
