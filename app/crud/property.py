@@ -17,12 +17,28 @@ async def list_properties(session: AsyncSession) -> list[Property]:
 
 async def create_property(session: AsyncSession, host_id: str, property_in: PropertyCreate) -> Property:
     property_data = property_in.model_dump(exclude_unset=True)
-    if property_data.get("hotel_name") is None and property_data.get("name"):
-        property_data["hotel_name"] = property_data["name"]
+
+    # Clean up legacy or alias fields
+    if not property_data.get("hotel_name") and property_data.get("name"):
+        property_data["hotel_name"] = property_data.pop("name")
+    else:
+        property_data.pop("name", None)
+
+    # Pop non-column contact fields and consolidate into contact
+    phone = property_data.pop("phone", None)
+    email = property_data.pop("email", None)
+
+    if not property_data.get("contact"):
+        contact_parts = [c.strip() for c in [phone, email] if c and isinstance(c, str) and c.strip()]
+        if contact_parts:
+            property_data["contact"] = " | ".join(contact_parts)
+        else:
+            property_data["contact"] = property_data.get("address") or ""
+
+    # Ensure HttpUrl objects in images list are converted to strings
     if property_data.get("images"):
         property_data["images"] = [str(url) for url in property_data["images"]]
-    if property_data.get("contact") is None:
-        property_data["contact"] = property_data.get("address") or ""
+
     property_obj = Property(owner_id=host_id, **property_data)
     session.add(property_obj)
     await session.commit()
@@ -32,15 +48,34 @@ async def create_property(session: AsyncSession, host_id: str, property_in: Prop
 
 async def update_property(session: AsyncSession, property_obj: Property, update_in: PropertyUpdate) -> Property:
     update_data = update_in.model_dump(exclude_unset=True)
+
+    # Handle hotel_name fallbacks
     if "hotel_name" in update_data and update_data["hotel_name"] is not None:
         property_obj.hotel_name = update_data["hotel_name"]
         del update_data["hotel_name"]
-    if "name" in update_data and update_data["name"] is not None:
-        property_obj.hotel_name = update_data["name"]
+    if "name" in update_data:
+        if update_data["name"] is not None:
+            property_obj.hotel_name = update_data["name"]
         del update_data["name"]
+
+    # Handle phone/email pops and set contact string
+    phone = update_data.pop("phone", None)
+    email = update_data.pop("email", None)
+    if phone or email:
+        contact_parts = [c.strip() for c in [phone, email] if c and isinstance(c, str) and c.strip()]
+        if contact_parts:
+            property_obj.contact = " | ".join(contact_parts)
+
+    # Stringify images list if provided
+    if "images" in update_data and update_data["images"] is not None:
+        property_obj.images = [str(url) for url in update_data["images"]]
+        del update_data["images"]
+
+    # Assign remaining fields safely
     for field, value in update_data.items():
-        if value is not None:
+        if value is not None and hasattr(property_obj, field):
             setattr(property_obj, field, value)
+
     session.add(property_obj)
     await session.commit()
     await session.refresh(property_obj)

@@ -79,6 +79,10 @@ async def create_property_endpoint(
 
     normalized_type = property_type.strip().lower() if property_type else property_type
 
+    # Format phone and email into single contact string
+    contact_parts = [c.strip() for c in [phone, email] if c and c.strip()]
+    contact_info = " | ".join(contact_parts) if contact_parts else None
+
     property_in = PropertyCreate(
         hotel_name=name,
         property_type=normalized_type,
@@ -86,8 +90,7 @@ async def create_property_endpoint(
         city=city,
         state=state,
         country=country,
-        phone=phone,
-        email=email,
+        contact=contact_info,
         description=description,
         amenities=parsed_amenities,
     )

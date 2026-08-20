@@ -17,8 +17,6 @@ class PropertyBase(BaseModel):
     amenities: list[str] | None = None
     images: list[HttpUrl] | None = None
     contact: str | None = None
-    phone: str | None = None
-    email: str | None = None
     cancellation_policy: Literal["flexible", "moderate", "strict"] = "flexible"
     is_active: bool | None = True
 
@@ -44,10 +42,6 @@ class PropertyBase(BaseModel):
                 values["hotel_name"] = values["name"]
             if values.get("address") is None and values.get("city"):
                 values["address"] = values["city"]
-            if not values.get("contact"):
-                contacts = [c for c in [values.get("phone"), values.get("email")] if c]
-                if contacts:
-                    values["contact"] = " | ".join(contacts)
         return values
 
 
@@ -68,8 +62,6 @@ class PropertyUpdate(BaseModel):
     amenities: list[str] | None = None
     images: list[HttpUrl] | None = None
     contact: str | None = None
-    phone: str | None = None
-    email: str | None = None
     cancellation_policy: Literal["flexible", "moderate", "strict"] | None = None
     is_active: bool | None = None
 
