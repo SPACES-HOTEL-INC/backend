@@ -49,8 +49,22 @@ async def search_properties(
 
 
 @router.get("/mine", response_model=list[PropertyRead])
-async def read_my_properties(user=Depends(require_host), session: AsyncSession = Depends(get_async_session)):
-    return await list_host_properties(session, str(user.id))
+async def read_my_properties(
+    user=Depends(get_current_user), 
+    session: AsyncSession = Depends(get_async_session)
+):
+    """
+    Fetch all properties owned by the currently authenticated user.
+    Uses get_current_user to prevent 403 Forbidden errors when fetching owned branches.
+    """
+    try:
+        properties = await list_host_properties(session, str(user.id))
+        return properties
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch properties: {str(e)}"
+        )
 
 
 @router.get("/{property_id}", response_model=PropertyRead)
@@ -74,7 +88,7 @@ async def create_property_endpoint(
     description: str | None = Form(None),
     amenities: str | None = Form("[]"),
     images: list[UploadFile] = File(default=[]),
-    user=Depends(require_host),
+    user=Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session),
 ):
     try:
@@ -115,8 +129,12 @@ async def create_property_endpoint(
         "amenities": parsed_amenities,
     }
 
-    # Populate image fields dynamically if present on PropertyCreate schema
+    # Dynamically match schema attributes (title, name, hotel_name)
     schema_fields = getattr(PropertyCreate, "__fields__", getattr(PropertyCreate, "model_fields", {}))
+    if "title" in schema_fields:
+        create_data["title"] = name
+    if "name" in schema_fields:
+        create_data["name"] = name
     if "image_url" in schema_fields:
         create_data["image_url"] = primary_image_url
     if "images" in schema_fields:
@@ -131,7 +149,7 @@ async def create_property_endpoint(
 async def update_property_endpoint(
     property_id: uuid.UUID,
     property_in: PropertyUpdate,
-    user=Depends(require_host),
+    user=Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session),
 ):
     property_obj = await get_property_by_id(session, str(property_id))
@@ -143,11 +161,11 @@ async def update_property_endpoint(
 @router.delete("/{property_id}", response_model=PropertyRead)
 async def delete_property_endpoint(
     property_id: uuid.UUID,
-    user=Depends(require_host),
+    user=Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session),
 ):
     property_obj = await get_property_by_id(session, str(property_id))
-    if not property_obj or (str(property_obj.owner_id) != str(user.id) and not user.is_admin):
+    if not property_obj or (str(property_obj.owner_id) != str(user.id) and not getattr(user, 'is_admin', False)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found or not owned")
     return await deactivate_property(session, property_obj)
 
