@@ -7,6 +7,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.dependencies import get_current_user, require_admin, require_host
+from ..core.cloudinary import upload_image_to_cloudinary
 from ..crud.property import create_property, deactivate_property, get_property_by_id, list_host_properties, list_properties, update_property
 from ..database import get_async_session
 from ..models.property import Property
@@ -98,10 +99,23 @@ async def create_property_endpoint(
 
     normalized_type = property_type.strip().lower() if property_type else property_type
 
-    # Save uploaded images to disk
+    # Upload images to Cloudinary (preferred) or fallback to local storage
     saved_image_urls: list[str] = []
     for img in images:
-        if img.filename:
+        if not img.filename:
+            continue
+        try:
+            # Attempt Cloudinary upload (async wrapper)
+            url = await upload_image_to_cloudinary(img.file, folder="spaces/properties")
+            if url:
+                saved_image_urls.append(url)
+                continue
+        except Exception:
+            # Fall back to saving locally if Cloudinary fails
+            pass
+
+        # Local fallback
+        try:
             file_ext = os.path.splitext(img.filename)[1]
             unique_filename = f"{uuid.uuid4().hex}{file_ext}"
             file_path = os.path.join(UPLOAD_DIR, unique_filename)
@@ -110,6 +124,9 @@ async def create_property_endpoint(
                 shutil.copyfileobj(img.file, buffer)
 
             saved_image_urls.append(f"/static/uploads/properties/{unique_filename}")
+        except Exception:
+            # If even fallback fails, skip the image
+            continue
 
     primary_image_url = saved_image_urls[0] if saved_image_urls else None
 
