@@ -1,7 +1,7 @@
 import uuid
 from typing import List
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class RoomBase(BaseModel):
@@ -11,7 +11,7 @@ class RoomBase(BaseModel):
 
 
 class RoomCreate(RoomBase):
-    images: List[HttpUrl] = Field(..., min_length=3, max_length=7)
+    images: List[str] = Field(..., min_length=3, max_length=7)
 
 
 class RoomResponse(RoomBase):

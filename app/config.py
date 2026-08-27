@@ -1,7 +1,7 @@
 import secrets
 from typing import List
 
-from pydantic import AnyHttpUrl, ValidationError
+from pydantic import ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
