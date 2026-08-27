@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 
 class PropertyBase(BaseModel):
@@ -16,7 +16,7 @@ class PropertyBase(BaseModel):
     latitude: float | None = None
     longitude: float | None = None
     amenities: list[str] | None = None
-    images: list[HttpUrl] | None = None
+    images: list[str] | None = None
     contact: str | None = None
     cancellation_policy: Literal["flexible", "moderate", "strict"] = "flexible"
     is_active: bool | None = True
@@ -61,7 +61,7 @@ class PropertyUpdate(BaseModel):
     latitude: float | None = None
     longitude: float | None = None
     amenities: list[str] | None = None
-    images: list[HttpUrl] | None = None
+    images: list[str] | None = None
     contact: str | None = None
     cancellation_policy: Literal["flexible", "moderate", "strict"] | None = None
     is_active: bool | None = None
