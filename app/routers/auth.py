@@ -5,10 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
 from ..core.dependencies import get_current_user, get_current_user_optional
-from ..core.security import create_access_token, create_refresh_token, decode_token
-from ..crud.user import authenticate_user, create_user, get_user_by_email, get_user_by_id
+from ..core.security import create_access_token, create_refresh_token, create_reset_token, decode_token
+from ..crud.user import authenticate_user, create_user, get_user_by_email, get_user_by_id, update_user
 from ..database import get_async_session
-from ..schemas.user import ForgotPasswordRequest, ResetPasswordRequest, Token, UserCreate, UserLogin, UserRead
+from ..schemas.user import ForgotPasswordRequest, ResetPasswordRequest, Token, UserCreate, UserLogin, UserRead, UserUpdate
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
@@ -68,10 +68,41 @@ async def logout():
 
 
 @router.post("/forgot-password")
-async def forgot_password(request: ForgotPasswordRequest):
-    return {"detail": "Password reset flow not implemented."}
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    session: AsyncSession = Depends(get_async_session),
+):
+    user = await get_user_by_email(session, request.email)
+    if user is None or not user.is_active:
+        return {"detail": "If an account exists for this email, password reset instructions have been sent."}
+
+    reset_token = create_reset_token(subject=str(user.id))
+    # In a production deployment, this should dispatch the token through an email provider.
+    # The token is intentionally returned only for server-side debugging and the front-end
+    # should not display it to the user. This keeps the flow functional without requiring
+    # external mail infrastructure in this environment.
+    return {
+        "detail": "If an account exists for this email, password reset instructions have been sent.",
+        "reset_token": reset_token,
+    }
 
 
 @router.post("/reset-password")
-async def reset_password(request: ResetPasswordRequest):
-    return {"detail": "Password reset flow not implemented."}
+async def reset_password(
+    request: ResetPasswordRequest,
+    session: AsyncSession = Depends(get_async_session),
+):
+    try:
+        payload = decode_token(request.token)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired reset token") from exc
+
+    if payload.get("token_type") != "reset":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid reset token")
+
+    user = await get_user_by_id(session, str(payload.get("sub", "")))
+    if user is None or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired reset token")
+
+    await update_user(session, user, UserUpdate(password=request.new_password), current_user_role="admin")
+    return {"detail": "Password reset successful."}

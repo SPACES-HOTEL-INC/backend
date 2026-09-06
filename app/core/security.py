@@ -40,6 +40,12 @@ def create_refresh_token(subject: str, expires_delta: timedelta | None = None) -
     return _create_token(subject, expires_delta, "refresh")
 
 
+def create_reset_token(subject: str, expires_delta: timedelta | None = None) -> str:
+    if expires_delta is None:
+        expires_delta = timedelta(minutes=30)
+    return _create_token(subject, expires_delta, "reset")
+
+
 def decode_token(token: str) -> dict[str, Any]:
     try:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
