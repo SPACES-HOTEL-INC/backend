@@ -154,3 +154,54 @@ async def list_public_rooms(
         )
 
     return out
+
+
+@router.get("/search", response_model=list[dict])
+async def search_public_rooms(
+    city: str | None = Query(None),
+    min_price: float | None = Query(None, gt=0),
+    max_price: float | None = Query(None, gt=0),
+    property_type: str | None = Query(None),
+    limit: int = Query(20, ge=1, le=200),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """
+    Search rooms publicly with optional filters: city, min_price, max_price, property_type.
+    Returns rooms joined with parent property metadata.
+    """
+    query = select(Room, Property).join(Property, Room.property_id == Property.id).where(Property.is_active == True)
+
+    if city:
+        query = query.where(func.lower(Property.city) == city.lower())
+    if property_type:
+        query = query.where(func.lower(Property.property_type) == property_type.strip().lower())
+    if min_price is not None:
+        query = query.where(Room.price_per_night >= min_price)
+    if max_price is not None:
+        query = query.where(Room.price_per_night <= max_price)
+
+    query = query.order_by(Property.avg_rating.desc(), Room.price_per_night.asc()).limit(limit)
+
+    result = await session.execute(query)
+    rows = result.all()
+
+    out = []
+    for room_obj, prop in rows:
+        out.append(
+            {
+                "id": str(room_obj.id),
+                "property_id": str(room_obj.property_id),
+                "title": room_obj.title,
+                "description": room_obj.description,
+                "price_per_night": room_obj.price_per_night,
+                "images": room_obj.images,
+                "hotel_name": prop.hotel_name,
+                "city": prop.city,
+                "state": prop.state,
+                "address": prop.address,
+                "avg_rating": prop.avg_rating,
+                "property_type": prop.property_type,
+            }
+        )
+
+    return out
