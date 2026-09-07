@@ -1,6 +1,6 @@
 import uuid
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.cloudinary import upload_image_to_cloudinary
@@ -9,6 +9,7 @@ from ..crud.property import get_property_by_id, list_host_properties
 from ..crud.room import create_room as crud_create_room, get_rooms_for_property
 from ..database import get_async_session
 from ..models.room import Room
+from ..models.property import Property
 from ..schemas.room import RoomCreate, RoomResponse
 
 router = APIRouter(prefix="/api/v1/rooms", tags=["rooms"])
@@ -113,3 +114,43 @@ async def list_room_with_files(
     return await crud_create_room(
         session=session, room_data=validated_payload, property_id=property_id
     )
+
+
+@router.get("/public", response_model=list[dict])
+async def list_public_rooms(
+    city: str | None = Query(None),
+    limit: int = Query(6, ge=1, le=100),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """
+    Public rooms listing. Returns rooms for active properties, optionally filtered by city.
+    Each item includes room fields plus parent property metadata: hotel_name, city, state, address, avg_rating.
+    """
+    query = select(Room, Property).join(Property, Room.property_id == Property.id).where(Property.is_active == True)
+    if city:
+        query = query.where(func.lower(Property.city) == city.lower())
+    # Order by property rating (desc) then room price (asc)
+    query = query.order_by(Property.avg_rating.desc(), Room.price_per_night.asc()).limit(limit)
+
+    result = await session.execute(query)
+    rows = result.all()
+
+    out = []
+    for room_obj, prop in rows:
+        out.append(
+            {
+                "id": str(room_obj.id),
+                "property_id": str(room_obj.property_id),
+                "title": room_obj.title,
+                "description": room_obj.description,
+                "price_per_night": room_obj.price_per_night,
+                "images": room_obj.images,
+                "hotel_name": prop.hotel_name,
+                "city": prop.city,
+                "state": prop.state,
+                "address": prop.address,
+                "avg_rating": prop.avg_rating,
+            }
+        )
+
+    return out
