@@ -151,6 +151,7 @@ async def list_public_rooms(
                 "state": prop.state,
                 "address": prop.address,
                 "avg_rating": prop.avg_rating,
+                "total_reviews": prop.total_reviews,
             }
         )
 
@@ -202,7 +203,7 @@ async def search_public_rooms(
                 "state": prop.state,
                 "address": prop.address,
                 "avg_rating": prop.avg_rating,
-                "property_type": prop.property_type,
+                "total_reviews": prop.total_reviews,
             }
         )
 
