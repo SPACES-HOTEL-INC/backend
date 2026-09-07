@@ -119,7 +119,8 @@ async def list_room_with_files(
 @router.get("/public", response_model=list[dict])
 async def list_public_rooms(
     city: str | None = Query(None),
-    limit: int = Query(6, ge=1, le=100),
+    # Default to Home-friendly limit=8
+    limit: int = Query(8, ge=1, le=100),
     session: AsyncSession = Depends(get_async_session),
 ):
     """
@@ -162,7 +163,8 @@ async def search_public_rooms(
     min_price: float | None = Query(None, gt=0),
     max_price: float | None = Query(None, gt=0),
     property_type: str | None = Query(None),
-    limit: int = Query(20, ge=1, le=200),
+    # Default per-page search limit = 12
+    limit: int = Query(12, ge=1, le=200),
     session: AsyncSession = Depends(get_async_session),
 ):
     """
