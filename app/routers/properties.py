@@ -201,3 +201,15 @@ async def verify_property_endpoint(
     await session.commit()
     await session.refresh(property_obj)
     return property_obj
+
+
+@router.get("/featured", response_model=list[PropertyRead])
+async def list_featured_properties(
+    limit: int = Query(4, ge=1, le=50), session: AsyncSession = Depends(get_async_session)
+):
+    """
+    Returns top-rated active properties ordered by `avg_rating`.
+    """
+    query = select(Property).where(Property.is_active == True).order_by(Property.avg_rating.desc()).limit(limit)
+    result = await session.execute(query)
+    return result.scalars().all()
