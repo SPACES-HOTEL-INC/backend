@@ -127,7 +127,24 @@ async def list_public_rooms(
     Public rooms listing. Returns rooms for active properties, optionally filtered by city.
     Each item includes room fields plus parent property metadata: hotel_name, city, state, address, avg_rating.
     """
-    query = select(Room, Property).join(Property, Room.property_id == Property.id).where(Property.is_active == True)
+    query = (
+        select(
+            Room.id,
+            Room.property_id,
+            Room.title,
+            Room.description,
+            Room.price_per_night,
+            Room.images,
+            Property.hotel_name,
+            Property.city,
+            Property.state,
+            Property.address,
+            Property.avg_rating,
+            Property.total_reviews,
+        )
+        .join(Property, Room.property_id == Property.id)
+        .where(Property.is_active == True)
+    )
     if city:
         query = query.where(func.lower(Property.city) == city.lower())
     # Order by property rating (desc) then room price (asc)
@@ -137,21 +154,34 @@ async def list_public_rooms(
     rows = result.all()
 
     out = []
-    for room_obj, prop in rows:
+    for (
+        room_id,
+        property_id,
+        title,
+        description,
+        price_per_night,
+        images,
+        hotel_name,
+        city_val,
+        state_val,
+        address_val,
+        avg_rating,
+        total_reviews,
+    ) in rows:
         out.append(
             {
-                "id": str(room_obj.id),
-                "property_id": str(room_obj.property_id),
-                "title": room_obj.title,
-                "description": room_obj.description,
-                "price_per_night": room_obj.price_per_night,
-                "images": room_obj.images,
-                "hotel_name": prop.hotel_name,
-                "city": prop.city,
-                "state": prop.state,
-                "address": prop.address,
-                "avg_rating": prop.avg_rating,
-                "total_reviews": prop.total_reviews,
+                "id": str(room_id),
+                "property_id": str(property_id),
+                "title": title,
+                "description": description,
+                "price_per_night": price_per_night,
+                "images": images,
+                "hotel_name": hotel_name,
+                "city": city_val,
+                "state": state_val,
+                "address": address_val,
+                "avg_rating": avg_rating,
+                "total_reviews": total_reviews,
             }
         )
 
@@ -172,7 +202,25 @@ async def search_public_rooms(
     Search rooms publicly with optional filters: city, min_price, max_price, property_type.
     Returns rooms joined with parent property metadata.
     """
-    query = select(Room, Property).join(Property, Room.property_id == Property.id).where(Property.is_active == True)
+    query = (
+        select(
+            Room.id,
+            Room.property_id,
+            Room.title,
+            Room.description,
+            Room.price_per_night,
+            Room.images,
+            Property.hotel_name,
+            Property.city,
+            Property.state,
+            Property.address,
+            Property.avg_rating,
+            Property.total_reviews,
+            Property.property_type,
+        )
+        .join(Property, Room.property_id == Property.id)
+        .where(Property.is_active == True)
+    )
 
     if city:
         query = query.where(func.lower(Property.city) == city.lower())
@@ -189,21 +237,36 @@ async def search_public_rooms(
     rows = result.all()
 
     out = []
-    for room_obj, prop in rows:
+    for (
+        room_id,
+        property_id,
+        title,
+        description,
+        price_per_night,
+        images,
+        hotel_name,
+        city_val,
+        state_val,
+        address_val,
+        avg_rating,
+        total_reviews,
+        property_type_val,
+    ) in rows:
         out.append(
             {
-                "id": str(room_obj.id),
-                "property_id": str(room_obj.property_id),
-                "title": room_obj.title,
-                "description": room_obj.description,
-                "price_per_night": room_obj.price_per_night,
-                "images": room_obj.images,
-                "hotel_name": prop.hotel_name,
-                "city": prop.city,
-                "state": prop.state,
-                "address": prop.address,
-                "avg_rating": prop.avg_rating,
-                "total_reviews": prop.total_reviews,
+                "id": str(room_id),
+                "property_id": str(property_id),
+                "title": title,
+                "description": description,
+                "price_per_night": price_per_night,
+                "images": images,
+                "hotel_name": hotel_name,
+                "city": city_val,
+                "state": state_val,
+                "address": address_val,
+                "avg_rating": avg_rating,
+                "total_reviews": total_reviews,
+                "property_type": property_type_val,
             }
         )
 
