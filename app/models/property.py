@@ -19,7 +19,7 @@ class Property(Base):
 
     description = Column(String, nullable=True)
     property_type = Column(String, nullable=True, default="hotel")
-    city = Column(String, nullable=True)
+    city = Column(String, nullable=True, index=True)
     state = Column(String, nullable=True)
     country = Column(String, nullable=True, default="Nigeria")
     latitude = Column(Float, nullable=True)
@@ -32,7 +32,7 @@ class Property(Base):
     total_reviews = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
-    is_active = Column(Boolean, default=True, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False, index=True)
 
     balance = Column(Numeric(10, 2), default=0.00)
     bank_details = Column(JSON, nullable=True)
