@@ -271,3 +271,84 @@ async def search_public_rooms(
         )
 
     return out
+
+
+@router.get("/public/{room_id}", response_model=dict)
+async def get_public_room(room_id: uuid.UUID, session: AsyncSession = Depends(get_async_session)):
+    """
+    Get a single public room by id joined with its parent property details.
+    """
+    query = (
+        select(
+            Room.id,
+            Room.property_id,
+            Room.title,
+            Room.description,
+            Room.price_per_night,
+            Room.images,
+            Property.hotel_name,
+            Property.address,
+            Property.city,
+            Property.state,
+            Property.country,
+            Property.amenities,
+            Property.cancellation_policy,
+            Property.avg_rating,
+            Property.total_reviews,
+            Property.contact,
+            Property.images.label("property_images"),
+        )
+        .join(Property, Room.property_id == Property.id)
+        .where(Room.id == room_id)
+        .where(Property.is_active == True)
+    )
+
+    result = await session.execute(query)
+    row = result.first()
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Room not found")
+
+    (
+        room_id_val,
+        property_id,
+        title,
+        description,
+        price_per_night,
+        images,
+        hotel_name,
+        address_val,
+        city_val,
+        state_val,
+        country_val,
+        amenities_val,
+        cancellation_policy,
+        avg_rating,
+        total_reviews,
+        contact_val,
+        property_images,
+    ) = row
+
+    # Ensure JSON fields are arrays
+    images_list = images if isinstance(images, list) else (images or [])
+    prop_images_list = property_images if isinstance(property_images, list) else (property_images or [])
+    amenities_list = amenities_val if isinstance(amenities_val, list) else (amenities_val or [])
+
+    return {
+        "id": str(room_id_val),
+        "property_id": str(property_id),
+        "title": title,
+        "description": description,
+        "price_per_night": price_per_night,
+        "images": images_list,
+        "hotel_name": hotel_name,
+        "address": address_val,
+        "city": city_val,
+        "state": state_val,
+        "country": country_val,
+        "amenities": amenities_list,
+        "cancellation_policy": cancellation_policy,
+        "avg_rating": avg_rating,
+        "total_reviews": total_reviews,
+        "contact": contact_val,
+        "property_images": prop_images_list,
+    }
