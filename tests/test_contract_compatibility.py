@@ -7,6 +7,7 @@ from app.models.property import Property
 from app.models.user import UserRole, UserRoleType
 from app.schemas.booking import BookingCreate
 from app.schemas.property import PropertyCreate
+from app.schemas.support import SupportTicketCreate, SupportTicketRead
 
 
 def test_property_model_exposes_host_id_alias():
@@ -64,3 +65,24 @@ def test_user_role_type_binds_expected_postgresql_enum_values():
     assert processor(UserRole.CONSUMER) == "CONSUMER"
     assert processor(UserRole.HOST) == "HOTEL"
     assert processor(UserRole.ADMIN) == "ADMIN"
+
+
+def test_support_ticket_schema_matches_frontend_contract():
+    created = SupportTicketCreate(subject="Payout delayed", message="My payout is delayed")
+
+    assert created.subject == "Payout delayed"
+    assert created.message == "My payout is delayed"
+
+    payload = SupportTicketRead(
+        id="TKT-1042",
+        subject="Payout delayed",
+        date="Sep 20, 2026",
+        status="In Progress",
+    )
+
+    assert payload.model_dump() == {
+        "id": "TKT-1042",
+        "subject": "Payout delayed",
+        "date": "Sep 20, 2026",
+        "status": "In Progress",
+    }

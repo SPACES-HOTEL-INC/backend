@@ -12,7 +12,7 @@ from .config import settings
 from .core import exceptions, logging
 from .core.exceptions import register_exception_handlers
 from .database import Base, engine
-from .routers import auth, bookings, payments, properties, public_properties, reviews, rooms, users
+from .routers import auth, bookings, payments, properties, public_properties, reviews, rooms, support, users
 
 logging.setup_logging()
 
@@ -77,6 +77,7 @@ app.include_router(rooms.router)
 app.include_router(bookings.router)
 app.include_router(payments.router)
 app.include_router(reviews.router)
+app.include_router(support.router)
 
 
 @app.get("/health", tags=["health"])
