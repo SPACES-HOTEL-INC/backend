@@ -12,7 +12,7 @@ from .config import settings
 from .core import exceptions, logging
 from .core.exceptions import register_exception_handlers
 from .database import Base, engine
-from .routers import auth, bookings, payments, properties, public_properties, reviews, rooms, settings, support, users
+from .routers import auth, bookings, payments, properties, public_properties, reviews, rooms, settings as settings_router, support, users
 
 logging.setup_logging()
 
@@ -71,7 +71,7 @@ register_exception_handlers(app)
 
 app.include_router(auth.router)
 app.include_router(users.router)
-app.include_router(settings.router)
+app.include_router(settings_router.router)
 app.include_router(properties.router)
 app.include_router(public_properties.router)
 app.include_router(rooms.router)
