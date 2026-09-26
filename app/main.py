@@ -93,6 +93,12 @@ async def readiness_check():
     return {"status": "ready"}
 
 
+@app.get("/.well-known/replay-qa-security-nonce", tags=["security"])
+async def replay_qa_nonce():
+    from fastapi.responses import PlainTextResponse
+    return PlainTextResponse("loopqa-sec-0CKnaqYI3WcTV2SKh1HaCnYyOaQPfQWHoRVIr66XOo0")
+
+
 @app.get("/")
 async def root():
     return {"message": "Spaces backend is running"}
