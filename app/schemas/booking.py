@@ -61,3 +61,12 @@ class BookingRead(BookingBase):
     updated_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class BookingReadWithRelations(BookingRead):
+    guest_name: str | None = None
+    guest_email: str | None = None
+    room_title: str | None = None
+    property_name: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)

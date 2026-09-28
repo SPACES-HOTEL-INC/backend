@@ -4,15 +4,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.dependencies import get_current_user, require_host
 from ..crud.booking import (
-    create_booking, 
-    get_booking_by_id, 
-    list_bookings_for_guest, 
-    list_bookings_for_host, 
+    create_booking,
+    get_booking_by_id,
+    list_bookings_for_guest,
+    list_bookings_for_host,
     cancel_booking
 )
 from ..crud.property import get_property_by_id
 from ..database import get_async_session
-from ..schemas.booking import BookingCreate, BookingRead
+from ..schemas.booking import BookingCreate, BookingRead, BookingReadWithRelations
 from ..models.user import User
 
 router = APIRouter(prefix="/api/v1/bookings", tags=["bookings"])
@@ -20,8 +20,8 @@ router = APIRouter(prefix="/api/v1/bookings", tags=["bookings"])
 
 @router.post("/", response_model=BookingRead, status_code=status.HTTP_201_CREATED)
 async def create_booking_endpoint(
-    booking_in: BookingCreate, 
-    user = Depends(get_current_user), 
+    booking_in: BookingCreate,
+    user = Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session)
 ):
     return await create_booking(session, booking_in, user.id)
@@ -29,15 +29,15 @@ async def create_booking_endpoint(
 
 @router.get("/mine", response_model=list[BookingRead])
 async def get_my_bookings(
-    user = Depends(get_current_user), 
+    user = Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session)
 ):
     return await list_bookings_for_guest(session, user.id)
 
 
-@router.get("/host-bookings", response_model=list[BookingRead])
+@router.get("/host-bookings", response_model=list[BookingReadWithRelations])
 async def get_my_property_bookings(
-    user = Depends(require_host), 
+    user = Depends(require_host),
     session: AsyncSession = Depends(get_async_session)
 ):
     return await list_bookings_for_host(session, user.id)
@@ -45,7 +45,7 @@ async def get_my_property_bookings(
 
 @router.get("/{booking_id}", response_model=BookingRead)
 async def get_booking(
-    booking_id: uuid.UUID, 
+    booking_id: uuid.UUID,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session)
 ):
@@ -59,7 +59,7 @@ async def get_booking(
 
 @router.delete("/{booking_id}", response_model=BookingRead)
 async def cancel_booking_endpoint(
-    booking_id: uuid.UUID, 
+    booking_id: uuid.UUID,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session)
 ):
