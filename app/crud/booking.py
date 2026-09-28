@@ -6,12 +6,14 @@ from typing import List, Optional
 from fastapi import HTTPException, status
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 # Add the Property model to your model imports here:
 from ..models.property import Property
 from ..models.booking import Booking, BookingStatus
 from ..models.room import Room
 from ..schemas.booking import BookingCreate, BookingUpdate
+from ..models.user import User
 
 
 async def create_booking(session: AsyncSession, booking: BookingCreate, user_id: uuid.UUID) -> Booking:
@@ -47,13 +49,18 @@ async def create_booking(session: AsyncSession, booking: BookingCreate, user_id:
             detail="This room is already booked for the selected dates.",
         )
 
+    total_price = booking.total_price
+    if total_price is None:
+        num_nights = (check_out - check_in).days
+        total_price = room.price_per_night * num_nights
+
     db_booking = Booking(
         user_id=user_id,
         room_id=booking.room_id,
         status=BookingStatus.PENDING,
         check_in=check_in,
         check_out=check_out,
-        total_price=booking.total_price,
+        total_price=total_price,
     )
     session.add(db_booking)
     await session.commit()
@@ -134,6 +141,10 @@ async def list_bookings_for_host(session: AsyncSession, host_id: uuid.UUID) -> L
         .join(Room, Booking.room_id == Room.id)
         .join(Property, Room.property_id == Property.id)
         .where(Property.owner_id == host_id)
+        .options(
+            selectinload(Booking.room).selectinload(Room.property),
+            selectinload(Booking.user),
+        )
     )
     return list(result.scalars().all())
 

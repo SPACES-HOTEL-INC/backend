@@ -12888,3 +12888,4 @@ DETAIL:  Key (owner_id)=(89ba24e8-2a53-416b-962b-2e52ecafac94) already exists.
 2026-09-22 16:49:40 | INFO | watchfiles.main | 1 change detected
 2026-09-22 16:49:40 | INFO | watchfiles.main | 1 change detected
 2026-09-22 16:49:55 | INFO | watchfiles.main | 1 change detected
+2026-09-28 16:37:31 | INFO | app.main | Database connection established successfully.
