@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..core.otp import generate_otp, hash_otp, is_otp_expired, otp_expiry, verify_otp
 from ..core.security import get_password_hash, verify_password
 from ..models.user import User, UserRole
 from ..schemas.user import UserCreate, UserUpdate
@@ -24,8 +25,48 @@ async def create_user(session: AsyncSession, user_in: UserCreate) -> User:
         hashed_password=get_password_hash(user_in.password),
         full_name=user_in.full_name,
         phone_number=user_in.phone_number,
+        is_verified=False,
     )
     user.role = role_value
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return user
+
+
+async def issue_otp(session: AsyncSession, user: User) -> str:
+    """Generate, persist and return a fresh plaintext OTP for `user`."""
+    code = generate_otp()
+    user.otp_code = hash_otp(code)
+    user.otp_expires_at = otp_expiry()
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return code
+
+
+async def verify_user_otp(session: AsyncSession, email: str, code: str) -> User:
+    """Validate `code` for `email` and flip the account to verified.
+
+    Raises ValueError with a user-safe message on any failure; the router maps
+    these to HTTP responses.
+    """
+    user = await get_user_by_email(session, email)
+    if not user:
+        raise ValueError("No account found for that email address.")
+
+    if user.is_verified:
+        raise ValueError("This account is already verified. Please sign in.")
+
+    if is_otp_expired(user.otp_expires_at):
+        raise ValueError("That verification code has expired. Please request a new one.")
+
+    if not verify_otp(code, user.otp_code):
+        raise ValueError("Incorrect verification code.")
+
+    user.is_verified = True
+    user.otp_code = None
+    user.otp_expires_at = None
     session.add(user)
     await session.commit()
     await session.refresh(user)

@@ -1,7 +1,7 @@
 import uuid
 from enum import Enum as PyEnum
 
-from sqlalchemy import Boolean, Column, String, TypeDecorator
+from sqlalchemy import Boolean, Column, DateTime, String, TypeDecorator
 from sqlalchemy.dialects.postgresql import ENUM as PGEnum, UUID
 from sqlalchemy.orm import relationship
 
@@ -88,6 +88,12 @@ class User(Base):
     reviews = relationship("Review", back_populates="guest")
 
     is_active = Column(Boolean, default=True, nullable=False)
+
+    # Email OTP verification state.
+    is_verified = Column(Boolean, default=False, nullable=False)
+    # Stores an HMAC-SHA256 hex digest of the OTP, not the 6-digit code itself.
+    otp_code = Column(String(64), nullable=True)
+    otp_expires_at = Column(DateTime(timezone=True), nullable=True)
 
     @property
     def role(self) -> UserRole:
