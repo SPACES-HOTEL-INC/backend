@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int | None = None
     REFRESH_TOKEN_EXPIRE_MINUTES: int | None = None
 
+    OTP_EXPIRY_MINUTES: int = 10
+
     @property
     def refresh_token_expire_minutes(self) -> int:
         if self.REFRESH_TOKEN_EXPIRE_MINUTES is not None:
@@ -31,6 +33,11 @@ class Settings(BaseSettings):
     CLOUDINARY_CLOUD_NAME: str = ""
     CLOUDINARY_API_KEY: str = ""
     CLOUDINARY_API_SECRET: str = ""
+
+    # SendGrid Transactional Email
+    SENDGRID_API_KEY: str | None = None
+    EMAILS_FROM: str = "no-reply@spaces.app"
+    EMAILS_FROM_NAME: str = "Spaces"
 
     CORS_ORIGINS: List[str] = ["http://localhost:3000"]
 

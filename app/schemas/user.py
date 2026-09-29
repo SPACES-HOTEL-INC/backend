@@ -19,6 +19,7 @@ class UserResponse(UserBase):
     id: uuid.UUID
     full_name: Optional[str] = None
     phone_number: Optional[str] = None
+    is_verified: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -53,6 +54,7 @@ class UserRead(BaseModel):
     is_active: bool = True
     full_name: Optional[str] = None
     phone_number: Optional[str] = None
+    is_verified: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -64,3 +66,24 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
+
+
+class OTPVerifyRequest(BaseModel):
+    email: EmailStr
+    otp_code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+class OTPResendRequest(BaseModel):
+    email: EmailStr
+
+
+class OTPMessage(BaseModel):
+    message: str
+    email: EmailStr
+    is_verified: bool = False
+
+
+class RegisterResponse(UserRead):
+    """Extends UserRead with the OTP dispatch notice, keeping every existing field."""
+
+    message: str = "Account created. A 6-digit verification code has been sent to your email."

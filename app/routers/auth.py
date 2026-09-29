@@ -5,21 +5,71 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
 from ..core.dependencies import get_current_user, get_current_user_optional
+from ..core.otp import send_otp_email
 from ..core.security import create_access_token, create_refresh_token, create_reset_token, decode_token
-from ..crud.user import authenticate_user, create_user, get_user_by_email, get_user_by_id, update_user
+from ..crud.user import (
+    authenticate_user,
+    create_user,
+    get_user_by_email,
+    get_user_by_id,
+    issue_otp,
+    update_user,
+    verify_user_otp,
+)
 from ..database import get_async_session
-from ..schemas.user import ForgotPasswordRequest, ResetPasswordRequest, Token, UserCreate, UserLogin, UserRead, UserUpdate
+from ..schemas.user import (
+    ForgotPasswordRequest,
+    OTPMessage,
+    OTPResendRequest,
+    OTPVerifyRequest,
+    RegisterResponse,
+    ResetPasswordRequest,
+    Token,
+    UserCreate,
+    UserLogin,
+    UserRead,
+    UserUpdate,
+)
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_in: UserCreate, session: AsyncSession = Depends(get_async_session)):
     existing_user = await get_user_by_email(session, user_in.email)
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
     user = await create_user(session, user_in)
-    return user
+    code = await issue_otp(session, user)
+    await send_otp_email(user.email, code)
+    return RegisterResponse.model_validate(user)
+
+
+@router.post("/verify-otp", response_model=OTPMessage)
+async def verify_otp_endpoint(payload: OTPVerifyRequest, session: AsyncSession = Depends(get_async_session)):
+    try:
+        user = await verify_user_otp(session, payload.email, payload.otp_code)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    return OTPMessage(message="Email verified. You can now sign in.", email=user.email, is_verified=True)
+
+
+@router.post("/resend-otp", response_model=OTPMessage)
+async def resend_otp_endpoint(payload: OTPResendRequest, session: AsyncSession = Depends(get_async_session)):
+    user = await get_user_by_email(session, payload.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="If an account exists for that email, a new verification code has been sent.",
+        )
+
+    if user.is_verified:
+        return OTPMessage(message="This account is already verified. Please sign in.", email=user.email)
+
+    code = await issue_otp(session, user)
+    await send_otp_email(user.email, code)
+    return OTPMessage(message="A new verification code has been sent to your email.", email=user.email)
 
 
 @router.post("/login", response_model=Token)
@@ -27,6 +77,11 @@ async def login(form_data: UserLogin, session: AsyncSession = Depends(get_async_
     user = await authenticate_user(session, form_data.email, form_data.password)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
+    if not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Please verify your email address before signing in.",
+        )
     access_token = create_access_token(subject=str(user.id), expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     refresh_token = create_refresh_token(subject=str(user.id))
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
