@@ -12,7 +12,6 @@ def test_profile_schema_uses_frontend_contract_names():
         fullName="Abubakar Samuel",
         email="samuel@example.com",
         phone="+2348059780405",
-        avatarUrl="https://res.cloudinary.com/demo/image/upload/v1/avatar.jpg",
         role="Super Admin",
     )
 

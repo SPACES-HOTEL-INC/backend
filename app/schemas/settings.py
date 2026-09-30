@@ -8,7 +8,6 @@ class ProfileSettingsRead(BaseModel):
     fullName: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
-    avatarUrl: Optional[str] = None
     role: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
@@ -17,7 +16,6 @@ class ProfileSettingsRead(BaseModel):
 class ProfileSettingsUpdate(BaseModel):
     fullName: Optional[str] = Field(default=None, max_length=255)
     phone: Optional[str] = Field(default=None, max_length=32)
-    avatarUrl: Optional[str] = Field(default=None, max_length=500)
 
 
 class BusinessSettingsRead(BaseModel):
