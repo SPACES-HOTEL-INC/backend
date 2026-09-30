@@ -61,7 +61,6 @@ def _build_profile_payload(user: User) -> dict[str, Any]:
         "fullName": user.full_name,
         "email": user.email,
         "phone": user.phone_number,
-        "avatarUrl": getattr(user, "avatar_url", None),
         "role": _serialize_role(user.role),
     }
 
