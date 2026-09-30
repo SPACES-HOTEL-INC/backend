@@ -100,8 +100,6 @@ async def update_profile_settings(
         current_user.full_name = payload.fullName
     if payload.phone is not None:
         current_user.phone_number = payload.phone
-    if payload.avatarUrl is not None:
-        setattr(current_user, "avatar_url", payload.avatarUrl)
 
     session.add(current_user)
     await session.commit()
