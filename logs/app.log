@@ -14654,3 +14654,4 @@ WHERE users.email = $1::VARCHAR]
 2026-09-29 22:09:36 | INFO | app.main | Database connection established successfully.
 2026-09-29 22:10:56 | INFO | app.core.otp | Email verification OTP issued for wealthyjunior01@gmail.com (expires in 10 min)
 2026-09-29 22:10:57 | INFO | app.core.email | Verification email dispatched to wealthyjunior01@gmail.com via SendGrid
+2026-09-30 23:08:48 | INFO | app.main | Database connection established successfully.
