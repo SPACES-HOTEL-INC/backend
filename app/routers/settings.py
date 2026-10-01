@@ -1,3 +1,13 @@
+"""Settings endpoints for the account page.
+
+Responses use a `{status, data, message}` envelope rather than the plain shapes
+used elsewhere in the API, because the front-end settings screens expect it.
+
+Caveat: preferences are held in the in-process `USER_PREFERENCES` dict, so they
+are lost on restart and are not shared between workers. They need a real
+per-user table.
+"""
+
 from typing import Any
 
 from fastapi import APIRouter, Depends
@@ -21,6 +31,7 @@ from ..schemas.settings import (
 
 router = APIRouter(prefix="/api/v1/settings", tags=["settings"])
 
+# Defaults applied to any user who has never set a preference.
 DEFAULT_PREFERENCES: dict[str, Any] = {
     "emailNotifications": True,
     "smsAlerts": False,
@@ -28,10 +39,12 @@ DEFAULT_PREFERENCES: dict[str, Any] = {
     "payoutAlerts": True,
     "theme": "dark",
 }
+# In-memory preference store keyed by user id. Not persistent.
 USER_PREFERENCES: dict[str, dict[str, Any]] = {}
 
 
 def _success_response(data: Any | None = None, message: str | None = None):
+    """Wrap a payload in the success envelope, omitting empty fields."""
     payload: dict[str, Any] = {"status": "success"}
     if data is not None:
         payload["data"] = data
@@ -41,10 +54,16 @@ def _success_response(data: Any | None = None, message: str | None = None):
 
 
 def _error_response(message: str, status_code: int = 400):
+    """Build an error envelope. Returns a response directly because these
+    endpoints do not declare an error response model."""
     return JSONResponse(status_code=status_code, content={"status": "error", "message": message})
 
 
 def _serialize_role(role: Any) -> str:
+    """Map an internal role to the display label the settings UI shows.
+
+    Unknown or missing roles fall back to "User" so the UI always has a label.
+    """
     if role is None:
         return "User"
     value = str(role).strip().lower()
@@ -56,6 +75,7 @@ def _serialize_role(role: Any) -> str:
 
 
 def _build_profile_payload(user: User) -> dict[str, Any]:
+    """Profile section payload. Keys are camelCase for the front-end."""
     return {
         "id": str(user.id),
         "fullName": user.full_name,
@@ -66,6 +86,11 @@ def _build_profile_payload(user: User) -> dict[str, Any]:
 
 
 def _build_business_payload(user: User, property_obj: Property | None) -> dict[str, Any]:
+    """Business section payload.
+
+    Every field falls back to a user value or a hardcoded default, so a host with
+    no property still gets a complete, renderable response instead of nulls.
+    """
     business_email = getattr(property_obj, "business_email", None) or user.email
     support_phone = getattr(property_obj, "support_phone", None) or getattr(property_obj, "contact", None) or user.phone_number
     address = getattr(property_obj, "address", None) or "123 Hospitality Way, Abuja, Nigeria"
@@ -81,11 +106,13 @@ def _build_business_payload(user: User, property_obj: Property | None) -> dict[s
 
 
 def _get_preferences_for_user(user_id: str) -> dict[str, Any]:
+    """Return this user's stored preferences, seeding defaults on first access."""
     return USER_PREFERENCES.setdefault(str(user_id), DEFAULT_PREFERENCES.copy())
 
 
 @router.get("/profile")
 async def get_profile_settings(current_user: User = Depends(get_current_user)):
+    """The signed-in user's profile section."""
     return _success_response(_build_profile_payload(current_user))
 
 
@@ -95,6 +122,11 @@ async def update_profile_settings(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session),
 ):
+    """Update the caller's name and phone.
+
+    Fields left unset are not touched, so a partial update does not blank the
+    others out.
+    """
     if payload.fullName is not None:
         current_user.full_name = payload.fullName
     if payload.phone is not None:
@@ -108,6 +140,7 @@ async def update_profile_settings(
 
 @router.get("/business")
 async def get_business_settings(current_user: User = Depends(get_current_user)):
+    """The business section, derived from the caller's property."""
     return _success_response(_build_business_payload(current_user, current_user.owned_property))
 
 
@@ -117,6 +150,11 @@ async def update_business_settings(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session),
 ):
+    """Update the caller's business details, creating their property if needed.
+
+    A host who has never created a property still needs somewhere to store these
+    values, so a Property row is created on first save.
+    """
     property_obj = current_user.owned_property
     if property_obj is None:
         property_obj = Property(
@@ -134,6 +172,8 @@ async def update_business_settings(
         if payload.supportPhone is not None:
             property_obj.contact = payload.supportPhone
 
+    # These columns are written via setattr because they are not on every
+    # Property schema version the app has shipped.
     if payload.businessEmail is not None:
         setattr(property_obj, "business_email", payload.businessEmail)
     if payload.currency is not None:
@@ -152,6 +192,11 @@ async def update_password_settings(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session),
 ):
+    """Change the caller's password.
+
+    The current password must be re-entered, so a stolen token alone cannot
+    change it.
+    """
     if not verify_password(payload.currentPassword, current_user.hashed_password):
         return _error_response("Current password does not match.", status_code=400)
 
@@ -163,6 +208,7 @@ async def update_password_settings(
 
 @router.get("/preferences")
 async def get_preferences_settings(current_user: User = Depends(get_current_user)):
+    """Stored preferences merged over the defaults."""
     preferences = _get_preferences_for_user(str(current_user.id))
     return _success_response({**DEFAULT_PREFERENCES, **preferences})
 
@@ -172,6 +218,11 @@ async def update_preferences_settings(
     payload: PreferencesUpdate,
     current_user: User = Depends(get_current_user),
 ):
+    """Partially update preferences.
+
+    Merged in order: defaults, then what is already stored, then what was just
+    sent, so unset fields keep their current value.
+    """
     stored_preferences = _get_preferences_for_user(str(current_user.id))
     merged_preferences = {**DEFAULT_PREFERENCES, **stored_preferences, **payload.model_dump(exclude_unset=True)}
     USER_PREFERENCES[str(current_user.id)] = merged_preferences

@@ -1,3 +1,10 @@
+"""Database operations for properties.
+
+`create_property` and `update_property` absorb several client payload shapes:
+`name` for `hotel_name`, and separate `phone`/`email` that are merged into the
+single `contact` column.
+"""
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,16 +13,24 @@ from ..schemas.property import PropertyCreate, PropertyUpdate
 
 
 async def get_property_by_id(session: AsyncSession, property_id: str) -> Property | None:
+    """Fetch one property by id, or None."""
     result = await session.execute(select(Property).where(Property.id == property_id))
     return result.scalar_one_or_none()
 
 
 async def list_properties(session: AsyncSession) -> list[Property]:
+    """Every active property, public listing. Deactivated ones are excluded."""
     result = await session.execute(select(Property).where(Property.is_active == True))
     return result.scalars().all()
 
 
 async def create_property(session: AsyncSession, host_id: str, property_in: PropertyCreate) -> Property:
+    """Create a property owned by `host_id`.
+
+    contact is required in the database, so if the client sent phone/email
+    instead, they are joined into it; failing that it falls back to the address
+    so the insert cannot violate a NOT NULL constraint.
+    """
     property_data = property_in.model_dump(exclude_unset=True)
 
     # Clean up legacy or alias fields
@@ -47,6 +62,12 @@ async def create_property(session: AsyncSession, host_id: str, property_in: Prop
 
 
 async def update_property(session: AsyncSession, property_obj: Property, update_in: PropertyUpdate) -> Property:
+    """Apply a partial update.
+
+    Fields needing a transform (hotel_name, contact, images) are handled first
+    and removed from the dict; the rest are set directly, skipping None so an
+    omitted field is not overwritten with null.
+    """
     update_data = update_in.model_dump(exclude_unset=True)
 
     # Handle hotel_name fallbacks
@@ -83,6 +104,11 @@ async def update_property(session: AsyncSession, property_obj: Property, update_
 
 
 async def deactivate_property(session: AsyncSession, property_obj: Property) -> Property:
+    """Soft-delete a property.
+
+    Sets is_active False instead of removing the row, so bookings, payments and
+    reviews keep a valid reference.
+    """
     property_obj.is_active = False
     session.add(property_obj)
     await session.commit()
@@ -91,5 +117,6 @@ async def deactivate_property(session: AsyncSession, property_obj: Property) -> 
 
 
 async def list_host_properties(session: AsyncSession, host_id: str) -> list[Property]:
+    """Active properties owned by one host, for the dashboard."""
     result = await session.execute(select(Property).where(Property.owner_id == host_id, Property.is_active == True))
     return result.scalars().all()
