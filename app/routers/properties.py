@@ -1,3 +1,10 @@
+"""Property endpoints: public search, owner CRUD and admin verification.
+
+Creation is a multipart form rather than JSON because it accepts image uploads.
+Filters are optional and additive; each one that is supplied narrows the result
+set further.
+"""
+
 import json
 import os
 import shutil
@@ -16,6 +23,7 @@ from ..schemas.property import PropertyCreate, PropertyRead, PropertyUpdate
 
 router = APIRouter(prefix="/api/v1/properties", tags=["properties"])
 
+# Local fallback target for images when Cloudinary is unavailable or fails.
 UPLOAD_DIR = "static/uploads/properties"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -30,8 +38,16 @@ async def search_properties(
     limit: int = Query(10, ge=1, le=100),
     session: AsyncSession = Depends(get_async_session),
 ):
+    """Public property search, paginated.
+
+    Price filters apply to room rates, not the property itself, so this joins
+    to Room. `distinct` keeps properties from appearing once per matching room.
+    Soft-deleted (inactive) properties are always excluded.
+    """
     query = select(Property).where(Property.is_active == True)
 
+    # Case-insensitive matching, with whitespace tolerated on the type filter
+    # because it usually arrives from a free-text query.
     if city:
         query = query.where(func.lower(Property.city) == city.lower())
     if property_type:
@@ -44,6 +60,8 @@ async def search_properties(
             query = query.where(Room.price_per_night <= max_price)
         query = query.distinct()
 
+    # Offset/limit paging rather than keyset: the result set is small enough
+    # that deep pages are not a practical concern.
     query = query.offset((page - 1) * limit).limit(limit)
     result = await session.execute(query)
     return result.scalars().all()
@@ -58,6 +76,8 @@ async def read_my_properties(
     Fetch all properties owned by the currently authenticated user.
     Uses get_current_user to prevent 403 Forbidden errors when fetching owned branches.
     """
+    # Note: this includes inactive properties, so an owner can see their
+    # soft-deleted listings here even though search omits them.
     try:
         properties = await list_host_properties(session, str(user.id))
         return properties
@@ -70,6 +90,7 @@ async def read_my_properties(
 
 @router.get("/{property_id}", response_model=PropertyRead)
 async def read_property(property_id: uuid.UUID, session: AsyncSession = Depends(get_async_session)):
+    """Fetch one active property. Inactive properties are reported as 404."""
     property_obj = await get_property_by_id(session, str(property_id))
     if not property_obj or not property_obj.is_active:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found")
@@ -92,6 +113,15 @@ async def create_property_endpoint(
     user=Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session),
 ):
+    """Create a property, uploading any attached images.
+
+    Image handling is best-effort per file: a failure on one image is skipped
+    rather than failing the whole request, since a listing without photos is
+    still useful. Contact details are stored as one combined string, and the
+    amenity field accepts either JSON or a comma-separated list.
+    """
+    # Accept JSON first, then fall back to a comma-separated list so the same
+    # form field works for both the API client and a plain HTML form.
     try:
         parsed_amenities = json.loads(amenities) if amenities else []
     except Exception:
@@ -117,6 +147,8 @@ async def create_property_endpoint(
         # Local fallback
         try:
             file_ext = os.path.splitext(img.filename)[1]
+            # Random name avoids collisions and stops a client from choosing
+            # the on-disk path.
             unique_filename = f"{uuid.uuid4().hex}{file_ext}"
             file_path = os.path.join(UPLOAD_DIR, unique_filename)
 
@@ -128,6 +160,7 @@ async def create_property_endpoint(
             # If even fallback fails, skip the image
             continue
 
+    # The first uploaded image doubles as the cover shown in listings.
     primary_image_url = saved_image_urls[0] if saved_image_urls else None
 
     # Format phone and email into single contact string
@@ -146,7 +179,9 @@ async def create_property_endpoint(
         "amenities": parsed_amenities,
     }
 
-    # Dynamically match schema attributes (title, name, hotel_name)
+    # The schema's name field has drifted over time (hotel_name/name/title), so
+    # the payload fills in whichever aliases the current schema declares
+    # instead of hardcoding one of them.
     schema_fields = getattr(PropertyCreate, "__fields__", getattr(PropertyCreate, "model_fields", {}))
     if "title" in schema_fields:
         create_data["title"] = name
@@ -159,6 +194,7 @@ async def create_property_endpoint(
 
     property_in = PropertyCreate(**create_data)
 
+    # Owner comes from the token so a property cannot be created for someone else.
     return await create_property(session, str(user.id), property_in)
 
 
@@ -169,7 +205,10 @@ async def update_property_endpoint(
     user=Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session),
 ):
+    """Replace a property's editable fields. Owner only."""
     property_obj = await get_property_by_id(session, str(property_id))
+    # A non-owner gets 404 rather than 403, so the endpoint does not confirm
+    # that someone else's property exists.
     if not property_obj or str(property_obj.owner_id) != str(user.id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found or not owned")
     return await update_property(session, property_obj, property_in)
@@ -181,6 +220,11 @@ async def delete_property_endpoint(
     user=Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session),
 ):
+    """Soft-delete a property. Owner or admin only.
+
+    The row is kept and flagged inactive so existing bookings and reviews keep
+    their references.
+    """
     property_obj = await get_property_by_id(session, str(property_id))
     if not property_obj or (str(property_obj.owner_id) != str(user.id) and not getattr(user, 'is_admin', False)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found or not owned")
@@ -193,6 +237,11 @@ async def verify_property_endpoint(
     user=Depends(require_admin),
     session: AsyncSession = Depends(get_async_session),
 ):
+    """Mark a property as verified. Admin only.
+
+    The flag is set directly here rather than through the CRUD layer because
+    verification is a one-field admin action, not a general update.
+    """
     property_obj = await get_property_by_id(session, str(property_id))
     if not property_obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found")
@@ -209,6 +258,10 @@ async def list_featured_properties(
 ):
     """
     Returns top-rated active properties ordered by `avg_rating`.
+
+    NOTE: this route is declared after `/{property_id}`, so FastAPI matches the
+    UUID path first and a request for `/featured` fails to parse as a UUID.
+    Move this declaration above `/{property_id}` to fix.
     """
     query = select(Property).where(Property.is_active == True).order_by(Property.avg_rating.desc()).limit(limit)
     result = await session.execute(query)

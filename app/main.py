@@ -1,3 +1,10 @@
+"""Application entry point.
+
+Wires up logging, the database engine, middleware, exception handlers and every
+API router. Anything a new developer should know about running this service
+lives in the module docstring of the file that owns it.
+"""
+
 import os
 from contextlib import asynccontextmanager
 
@@ -16,12 +23,18 @@ from .routers import auth, bookings, payments, properties, public_properties, re
 
 logging.setup_logging()
 
-# Ensure local upload directories exist
+# Ensure local upload directories exist. StaticFiles mounts this directory at
+# startup and raises if it is missing, so create it before the app builds.
 os.makedirs("static/uploads/properties", exist_ok=True)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Start-up / shut-down hook.
+
+    Fails fast when the database is unreachable so a broken instance never
+    starts accepting traffic, and returns pooled connections on shutdown.
+    """
     import logging
     logger = logging.getLogger(__name__)
     try:
@@ -39,20 +52,28 @@ app = FastAPI(
     title="Spaces Backend API",
     version="0.1.0",
     lifespan=lifespan,
+    # Interactive docs are disabled in production so the schema is not public.
     docs_url="/docs" if settings.ENV != "production" else None,
     redoc_url="/redoc" if settings.ENV != "production" else None,
 )
 
-# Mount static files directory to serve uploaded images publicly
+# Serves user-uploaded images. Only this prefix reaches the uploads folder;
+# /.well-known/ is handled by a route further down and never touches disk.
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Only compress responses above 1 kB; below that the overhead is not worth it.
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 if settings.ENV == "production":
+    # NOTE: allowed_hosts=["*"] currently accepts any Host header. It is a
+    # placeholder waiting on the real deployed hostnames. Tighten this before
+    # relying on Host-header protections.
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
 app.add_middleware(
     CORSMiddleware,
+    # Configured origins first, then known dev/preview deployments. The regex
+    # below also allows any Vercel preview URL for the frontend.
     allow_origins=[str(origin) for origin in settings.CORS_ORIGINS] + [
         "https://space-frontend-dev.vercel.app",
         "https://space-frontend-dev-git-main-samflixdps-projects.vercel.app",
@@ -67,8 +88,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Converts unhandled errors into JSON responses instead of leaking stack traces.
 register_exception_handlers(app)
 
+# Router order is cosmetic; each router owns a distinct URL prefix.
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(settings_router.router)
@@ -83,16 +106,24 @@ app.include_router(support.router)
 
 @app.get("/health", tags=["health"])
 async def health_check():
+    """Liveness probe. Answers as long as the process is running."""
     return {"status": "healthy"}
 
 
 @app.get("/ready", tags=["health"])
 async def readiness_check():
+    """Readiness probe for the load balancer."""
     return {"status": "ready"}
 
 
 @app.get("/.well-known/replay-qa-security-nonce", tags=["security"])
 async def replay_qa_nonce():
+    """Static site-ownership proof consumed by the Replay QA scanner.
+
+    Must answer 200 with this exact body as plain text, unauthenticated and
+    without a redirect, so the nonce is returned verbatim rather than wrapped in
+    JSON. The path is fixed; changing it invalidates the check.
+    """
     from fastapi.responses import PlainTextResponse
     return PlainTextResponse("loopqa-sec-0CKnaqYI3WcTV2SKh1HaCnYyOaQPfQWHoRVIr66XOo0")
 

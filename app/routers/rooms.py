@@ -1,3 +1,10 @@
+"""Room endpoints for hosts (create/list) and guests (public browse).
+
+Every write goes through `_verify_property_ownership`, so a host can only touch
+rooms on a property they own. The public routes return a flattened shape of room
+plus parent property fields, built by hand because there is no schema for it.
+"""
+
 import uuid
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy import select, func
@@ -18,11 +25,17 @@ router = APIRouter(prefix="/api/v1/rooms", tags=["rooms"])
 async def _verify_property_ownership(
     property_id: uuid.UUID, user, session: AsyncSession
 ) -> None:
+    """Assert the caller owns an active property.
+
+    Returns nothing; it raises the appropriate 404/400/403 so each caller can
+    stay a one-liner.
+    """
     property_obj = await get_property_by_id(session, str(property_id))
     if not property_obj:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Property not found"
         )
+    # Rooms cannot be added to a soft-deleted property.
     if not property_obj.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Property is not active"
@@ -40,10 +53,13 @@ async def list_rooms_for_host(
     user=Depends(require_host),
     session: AsyncSession = Depends(get_async_session),
 ):
+    """List the host's rooms, optionally scoped to one of their properties."""
     if property_id is not None:
         await _verify_property_ownership(property_id, user, session)
         return await get_rooms_for_property(session, property_id)
 
+    # No filter: gather the host's property ids first, then query rooms in one
+    # round trip rather than per property.
     host_properties = await list_host_properties(session, str(user.id))
     if not host_properties:
         return []
@@ -62,6 +78,7 @@ async def create_room_json(
     user=Depends(require_host),
     session: AsyncSession = Depends(get_async_session),
 ):
+    """Create a room from a JSON body. `property_id` is a query parameter here."""
     await _verify_property_ownership(property_id, user, session)
     return await crud_create_room(session=session, room_data=room_in, property_id=property_id)
 
@@ -73,6 +90,8 @@ async def list_room_json(
     user=Depends(require_host),
     session: AsyncSession = Depends(get_async_session),
 ):
+    """Duplicate of POST `/` with `property_id` in the body instead of the
+    query string. Kept for clients that already post the full object."""
     await _verify_property_ownership(property_id, user, session)
     return await crud_create_room(session=session, room_data=room_in, property_id=property_id)
 
@@ -87,6 +106,12 @@ async def list_room_with_files(
     user=Depends(require_host),
     session: AsyncSession = Depends(get_async_session),
 ):
+    """Create a room from a multipart form with image uploads.
+
+    The image count is bounded at 3-7 so listings stay consistent and the upload
+    cost per room is predictable. Cloudinary is the only storage path here, with
+    no local fallback, so a failed upload fails the request.
+    """
     if len(images) < 3:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -105,6 +130,7 @@ async def list_room_with_files(
         url = await upload_image_to_cloudinary(image.file, folder="spaces/rooms")
         saved_image_urls.append(url)
 
+    # Reuse the JSON schema so validation is identical on both create paths.
     validated_payload = RoomCreate(
         title=title,
         description=description,
@@ -126,6 +152,9 @@ async def list_public_rooms(
     """
     Public rooms listing. Returns rooms for active properties, optionally filtered by city.
     Each item includes room fields plus parent property metadata: hotel_name, city, state, address, avg_rating.
+
+    Sorted by property rating then price, and the join to Property excludes
+    soft-deleted listings.
     """
     query = select(Room, Property).join(Property, Room.property_id == Property.id).where(Property.is_active == True)
     if city:
@@ -136,6 +165,8 @@ async def list_public_rooms(
     result = await session.execute(query)
     rows = result.all()
 
+    # Flattened into plain dicts: the public response shape is not modelled by a
+    # schema, so ids are stringified here.
     out = []
     for room_obj, prop in rows:
         out.append(
@@ -171,6 +202,8 @@ async def search_public_rooms(
     """
     Search rooms publicly with optional filters: city, min_price, max_price, property_type.
     Returns rooms joined with parent property metadata.
+
+    Same response shape as `/public`; this variant adds price and type filters.
     """
     query = select(Room, Property).join(Property, Room.property_id == Property.id).where(Property.is_active == True)
 
