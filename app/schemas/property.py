@@ -18,8 +18,14 @@ class PropertyBase(BaseModel):
     # `name` is accepted as an alias for hotel_name; see normalize_legacy_fields.
     hotel_name: str | None = None
     description: str | None = None
-    # Literal, so an unexpected value is a 422 rather than bad data.
-    property_type: Literal["hotel", "apartment", "resort", "short_stay"] = "hotel"
+    # The product only permits a fixed set of accommodation categories.
+    property_type: Literal[
+        "hotel",
+        "resort",
+        "apartment/shortlet",
+        "event_spaces",
+        "villa",
+    ] = "hotel"
     address: str
     city: str | None = None
     state: str | None = None
@@ -35,10 +41,28 @@ class PropertyBase(BaseModel):
     @field_validator("property_type", mode="before")
     @classmethod
     def normalize_property_type(cls, v: str | None) -> str | None:
-        """Accept "Hotel" as well as "hotel"."""
-        if isinstance(v, str):
-            return v.strip().lower()
-        return v
+        """Accept the approved categories across the frontend's naming variants."""
+        if not isinstance(v, str):
+            return v
+
+        normalized = v.strip().lower().replace("_", " ")
+        normalized = normalized.replace("  ", " ")
+        normalized = normalized.replace(" / ", "/").replace("/ ", "/").replace(" /", "/")
+
+        mapping = {
+            "hotel": "hotel",
+            "resort": "resort",
+            "apartment": "apartment/shortlet",
+            "shortlet": "apartment/shortlet",
+            "apartment/shortlet": "apartment/shortlet",
+            "apartment shortlet": "apartment/shortlet",
+            "event space": "event_spaces",
+            "event spaces": "event_spaces",
+            "event_space": "event_spaces",
+            "event_spaces": "event_spaces",
+            "villa": "villa",
+        }
+        return mapping.get(normalized, normalized)
 
     @field_validator("cancellation_policy", mode="before")
     @classmethod
@@ -77,7 +101,13 @@ class PropertyUpdate(BaseModel):
 
     hotel_name: str | None = None
     description: str | None = None
-    property_type: Literal["hotel", "apartment", "resort", "short_stay"] | None = None
+    property_type: Literal[
+        "hotel",
+        "resort",
+        "apartment/shortlet",
+        "event_spaces",
+        "villa",
+    ] | None = None
     address: str | None = None
     city: str | None = None
     state: str | None = None

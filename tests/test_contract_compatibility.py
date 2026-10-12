@@ -51,6 +51,27 @@ def test_property_create_schema_supports_current_api_fields():
     assert property_in.state == "Lagos"
 
 
+def test_property_create_accepts_all_supported_property_types():
+    accepted = [
+        "hotel",
+        "resort",
+        "apartment/shortlet",
+        "event_spaces",
+        "villa",
+        "Apartment / Shortlet",
+        "Event Spaces",
+        "Villa",
+    ]
+
+    for value in accepted:
+        payload = PropertyCreate(
+            hotel_name="Sample",
+            property_type=value,
+            address="Lagos",
+        )
+        assert payload.property_type in {"hotel", "resort", "apartment/shortlet", "event_spaces", "villa"}
+
+
 def test_user_roles_remain_compatible_with_host_and_admin_access():
     assert UserRole.HOST == "host"
     assert UserRole.ADMIN == "admin"
