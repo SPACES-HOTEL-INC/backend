@@ -156,7 +156,24 @@ async def list_public_rooms(
     Sorted by property rating then price, and the join to Property excludes
     soft-deleted listings.
     """
-    query = select(Room, Property).join(Property, Room.property_id == Property.id).where(Property.is_active == True)
+    query = (
+        select(
+            Room.id,
+            Room.property_id,
+            Room.title,
+            Room.description,
+            Room.price_per_night,
+            Room.images,
+            Property.hotel_name,
+            Property.city,
+            Property.state,
+            Property.address,
+            Property.avg_rating,
+            Property.total_reviews,
+        )
+        .join(Property, Room.property_id == Property.id)
+        .where(Property.is_active == True)
+    )
     if city:
         query = query.where(func.lower(Property.city) == city.lower())
     # Order by property rating (desc) then room price (asc)
@@ -168,21 +185,34 @@ async def list_public_rooms(
     # Flattened into plain dicts: the public response shape is not modelled by a
     # schema, so ids are stringified here.
     out = []
-    for room_obj, prop in rows:
+    for (
+        room_id,
+        property_id,
+        title,
+        description,
+        price_per_night,
+        images,
+        hotel_name,
+        city_val,
+        state_val,
+        address_val,
+        avg_rating,
+        total_reviews,
+    ) in rows:
         out.append(
             {
-                "id": str(room_obj.id),
-                "property_id": str(room_obj.property_id),
-                "title": room_obj.title,
-                "description": room_obj.description,
-                "price_per_night": room_obj.price_per_night,
-                "images": room_obj.images,
-                "hotel_name": prop.hotel_name,
-                "city": prop.city,
-                "state": prop.state,
-                "address": prop.address,
-                "avg_rating": prop.avg_rating,
-                "total_reviews": prop.total_reviews,
+                "id": str(room_id),
+                "property_id": str(property_id),
+                "title": title,
+                "description": description,
+                "price_per_night": price_per_night,
+                "images": images,
+                "hotel_name": hotel_name,
+                "city": city_val,
+                "state": state_val,
+                "address": address_val,
+                "avg_rating": avg_rating,
+                "total_reviews": total_reviews,
             }
         )
 
@@ -205,7 +235,25 @@ async def search_public_rooms(
 
     Same response shape as `/public`; this variant adds price and type filters.
     """
-    query = select(Room, Property).join(Property, Room.property_id == Property.id).where(Property.is_active == True)
+    query = (
+        select(
+            Room.id,
+            Room.property_id,
+            Room.title,
+            Room.description,
+            Room.price_per_night,
+            Room.images,
+            Property.hotel_name,
+            Property.city,
+            Property.state,
+            Property.address,
+            Property.avg_rating,
+            Property.total_reviews,
+            Property.property_type,
+        )
+        .join(Property, Room.property_id == Property.id)
+        .where(Property.is_active == True)
+    )
 
     if city:
         query = query.where(func.lower(Property.city) == city.lower())
@@ -222,22 +270,118 @@ async def search_public_rooms(
     rows = result.all()
 
     out = []
-    for room_obj, prop in rows:
+    for (
+        room_id,
+        property_id,
+        title,
+        description,
+        price_per_night,
+        images,
+        hotel_name,
+        city_val,
+        state_val,
+        address_val,
+        avg_rating,
+        total_reviews,
+        property_type_val,
+    ) in rows:
         out.append(
             {
-                "id": str(room_obj.id),
-                "property_id": str(room_obj.property_id),
-                "title": room_obj.title,
-                "description": room_obj.description,
-                "price_per_night": room_obj.price_per_night,
-                "images": room_obj.images,
-                "hotel_name": prop.hotel_name,
-                "city": prop.city,
-                "state": prop.state,
-                "address": prop.address,
-                "avg_rating": prop.avg_rating,
-                "total_reviews": prop.total_reviews,
+                "id": str(room_id),
+                "property_id": str(property_id),
+                "title": title,
+                "description": description,
+                "price_per_night": price_per_night,
+                "images": images,
+                "hotel_name": hotel_name,
+                "city": city_val,
+                "state": state_val,
+                "address": address_val,
+                "avg_rating": avg_rating,
+                "total_reviews": total_reviews,
+                "property_type": property_type_val,
             }
         )
 
     return out
+
+
+@router.get("/public/{room_id}", response_model=dict)
+async def get_public_room(room_id: uuid.UUID, session: AsyncSession = Depends(get_async_session)):
+    """
+    Get a single public room by id joined with its parent property details.
+    """
+    query = (
+        select(
+            Room.id,
+            Room.property_id,
+            Room.title,
+            Room.description,
+            Room.price_per_night,
+            Room.images,
+            Property.hotel_name,
+            Property.address,
+            Property.city,
+            Property.state,
+            Property.country,
+            Property.amenities,
+            Property.cancellation_policy,
+            Property.avg_rating,
+            Property.total_reviews,
+            Property.contact,
+            Property.images.label("property_images"),
+        )
+        .join(Property, Room.property_id == Property.id)
+        .where(Room.id == room_id)
+        .where(Property.is_active == True)
+    )
+
+    result = await session.execute(query)
+    row = result.first()
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Room not found")
+
+    (
+        room_id_val,
+        property_id,
+        title,
+        description,
+        price_per_night,
+        images,
+        hotel_name,
+        address_val,
+        city_val,
+        state_val,
+        country_val,
+        amenities_val,
+        cancellation_policy,
+        avg_rating,
+        total_reviews,
+        contact_val,
+        property_images,
+    ) = row
+
+    # Ensure JSON fields are arrays
+    images_list = images if isinstance(images, list) else (images or [])
+    prop_images_list = property_images if isinstance(property_images, list) else (property_images or [])
+    amenities_list = amenities_val if isinstance(amenities_val, list) else (amenities_val or [])
+
+    return {
+        "id": str(room_id_val),
+        "property_id": str(property_id),
+        "title": title,
+        "description": description,
+        "price_per_night": price_per_night,
+        "images": images_list,
+        "hotel_name": hotel_name,
+        "address": address_val,
+        "city": city_val,
+        "state": state_val,
+        "country": country_val,
+        "amenities": amenities_list,
+        "cancellation_policy": cancellation_policy,
+        "avg_rating": avg_rating,
+        "total_reviews": total_reviews,
+        "contact": contact_val,
+        "property_images": prop_images_list,
+    }
