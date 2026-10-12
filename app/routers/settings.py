@@ -81,6 +81,7 @@ def _build_profile_payload(user: User) -> dict[str, Any]:
         "fullName": user.full_name,
         "email": user.email,
         "phone": user.phone_number,
+        "avatarUrl": getattr(user, "avatar_url", None) or "https://res.cloudinary.com/demo/image/upload/v1/avatar.jpg",
         "role": _serialize_role(user.role),
     }
 

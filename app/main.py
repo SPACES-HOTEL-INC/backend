@@ -6,12 +6,16 @@ lives in the module docstring of the file that owns it.
 """
 
 import os
+from collections import defaultdict
 from contextlib import asynccontextmanager
+from time import monotonic
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -26,6 +30,42 @@ logging.setup_logging()
 # Ensure local upload directories exist. StaticFiles mounts this directory at
 # startup and raises if it is missing, so create it before the app builds.
 os.makedirs("static/uploads/properties", exist_ok=True)
+
+
+class InMemoryRateLimitMiddleware(BaseHTTPMiddleware):
+    """Simple in-process per-client-per-endpoint throttle.
+
+    This is intentionally small and dependency-free so the API has a real guard
+   rail before requests reach the service layer. For multi-instance deployments,
+    a shared rate limiter (Redis/CloudFront/etc.) should replace it.
+    """
+
+    _buckets: dict[str, list[float]] = defaultdict(list)
+
+    def __init__(self, app: FastAPI, max_requests: int, window_seconds: int):
+        super().__init__(app)
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+
+    async def dispatch(self, request, call_next):
+        if not settings.RATE_LIMIT_ENABLED:
+            return await call_next(request)
+
+        client_host = request.client.host if request.client else "unknown"
+        key = f"{client_host}:{request.url.path}"
+        now = monotonic()
+        bucket = self._buckets[key]
+        bucket[:] = [stamp for stamp in bucket if now - stamp < self.window_seconds]
+
+        if len(bucket) >= self.max_requests:
+            return JSONResponse(
+                {"detail": "Rate limit exceeded"},
+                status_code=429,
+                headers={"Retry-After": str(self.window_seconds)},
+            )
+
+        bucket.append(now)
+        return await call_next(request)
 
 
 @asynccontextmanager
@@ -65,10 +105,13 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 if settings.ENV == "production":
-    # NOTE: allowed_hosts=["*"] currently accepts any Host header. It is a
-    # placeholder waiting on the real deployed hostnames. Tighten this before
-    # relying on Host-header protections.
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
+
+app.add_middleware(
+    InMemoryRateLimitMiddleware,
+    max_requests=settings.RATE_LIMIT_MAX_REQUESTS,
+    window_seconds=settings.RATE_LIMIT_WINDOW_SECONDS,
+)
 
 app.add_middleware(
     CORSMiddleware,

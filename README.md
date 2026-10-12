@@ -39,6 +39,8 @@ Configuration is centralized in [app/config.py](app/config.py#L1). Important env
 - `POSTGRES_*`: alternative DB pieces when `DATABASE_URL` is not set.
 - `CLOUDINARY_*`: optional credentials for Cloudinary uploads.
 - `CORS_ORIGINS`: list of allowed CORS origins.
+- `ALLOWED_HOSTS`: explicit, production-safe host allowlist; wildcards are rejected.
+- `RATE_LIMIT_ENABLED`, `RATE_LIMIT_MAX_REQUESTS`, `RATE_LIMIT_WINDOW_SECONDS`: request throttling settings.
 - `ENV`: `development`, `production`, or `test`. Controls docs and error behavior.
 - `PAYMENT_WEBHOOK_SECRET`: optional secret for payment webhooks.
 
@@ -91,8 +93,32 @@ Refer to the model files for full field types and constraints.
 - JWT-based token auth is used. See [app/core/security.py](app/core/security.py#L1) for token creation and verification.
 - Tokens: `access` (short-lived) and `refresh` (longer-lived). `sub` claim stores the user id.
 - Dependencies in [app/core/dependencies.py](app/core/dependencies.py#L1) supply `get_current_user`, optional current user, and role-check helpers `require_admin` and `require_host`.
+- Access tokens are now strictly validated against the `token_type` claim so a refresh token cannot be replayed as an access token.
 
 Authentication endpoints: [app/routers/auth.py](app/routers/auth.py#L1)
+
+## Security hardening review
+
+I audited the backend against the common API security patterns discussed in the OWASP API Top 10 and fixed the concrete gaps that were present in this codebase.
+
+### Fixed issues
+
+- Token replay protection: refresh/reset tokens are rejected when used as access tokens.
+- Password reset safety: reset tokens are no longer echoed in the API response body and are kept server-side instead.
+- Host authorization: property creation is now restricted to authenticated hosts/admins via `require_host`.
+- Host-header protection: production now uses an explicit `ALLOWED_HOSTS` allowlist instead of wildcard host matching.
+- Rate limiting: the app now enforces a lightweight in-memory per-client throttle before requests reach the service layer.
+
+### Review outcome
+
+- No direct BOLA issue was found in the booking/payment ownership checks: these handlers compare the authenticated user id with the resource owner before authorizing access.
+- The primary exploitable gaps were in token handling and route-level enforcement, which have been closed.
+
+### Security configuration notes
+
+- Keep `SECRET_KEY` in a secure environment variable or `.env` file; the app rejects weak defaults.
+- Set `ALLOWED_HOSTS` to the exact public hostnames for each deployment.
+- Keep rate limits low on auth and write endpoints and tune them for production traffic.
 
 ## API Reference (high-level)
 
