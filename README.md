@@ -11,24 +11,29 @@ A concise, developer-focused documentation for the Spaces backend service. This 
 ## Quick Start
 
 Prerequisites:
-- Python 3.11+ (recommended)
+- Python 3.11+
 - PostgreSQL reachable by the app
 - Optional: Cloudinary account for image uploads
 
-Install dependencies and run locally:
+Install and run locally:
 
 ```powershell
+cd C:\Users\Administrator\Documents\spaces-bk\backend
 python -m venv .venv
-.\.venv\Scripts\activate
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-set DATABASE_URL="postgresql+asyncpg://user:pass@localhost:5432/spaces"
-set SECRET_KEY="<a-strong-32+ char-secret>"
+
+# Required environment variables
+$env:DATABASE_URL = "postgresql+asyncpg://user:pass@localhost:5432/spaces"
+$env:SECRET_KEY = "<a-strong-32+-character-secret>"
+
+# Optional: keep app settings in a .env file instead of exporting manually
 uvicorn app.main:app --reload
 ```
 
-Windows note: use `set` instead of `export` or use a `.env` file (the app reads `.env`).
+The app will be available at `http://127.0.0.1:8000/` and the interactive docs at `/docs`.
 
-The API will be available at `http://127.0.0.1:8000/` and interactive docs at `/docs` (disabled in production).
+If you prefer a `.env` file, the app reads environment variables from the local environment automatically. The most important ones are `DATABASE_URL`, `SECRET_KEY`, and optional `ALLOWED_HOSTS` / `RATE_LIMIT_*` settings.
 
 ## Configuration
 
@@ -93,13 +98,25 @@ Refer to the model files for full field types and constraints.
 - JWT-based token auth is used. See [app/core/security.py](app/core/security.py#L1) for token creation and verification.
 - Tokens: `access` (short-lived) and `refresh` (longer-lived). `sub` claim stores the user id.
 - Dependencies in [app/core/dependencies.py](app/core/dependencies.py#L1) supply `get_current_user`, optional current user, and role-check helpers `require_admin` and `require_host`.
-- Access tokens are now strictly validated against the `token_type` claim so a refresh token cannot be replayed as an access token.
+- Access tokens are strictly validated against the `token_type` claim so a refresh token cannot be replayed as an access token.
 
 Authentication endpoints: [app/routers/auth.py](app/routers/auth.py#L1)
 
+## Supported property types
+
+The backend accepts only these property categories when creating or updating a property:
+
+- `hotel`
+- `resort`
+- `apartment/shortlet`
+- `event_spaces`
+- `villa`
+
+The API also accepts common user-facing variations such as `Apartment / Shortlet`, `Event Spaces`, and `Villa` through normalization. Values outside this list are rejected with validation errors.
+
 ## Security hardening review
 
-I audited the backend against the common API security patterns discussed in the OWASP API Top 10 and fixed the concrete gaps that were present in this codebase.
+I audited the backend against the common API security patterns and fixed the concrete gaps that were present in this codebase.
 
 ### Fixed issues
 
@@ -139,7 +156,7 @@ All endpoints are prefixed with `/api/v1` per router where applicable.
   - GET `/` — search properties (filters: `city`, `property_type`, `min_price`, `max_price`, `page`, `limit`).
   - GET `/mine` — list properties for authenticated host.
   - GET `/{property_id}` — property details.
-  - POST `/` — create property (multipart form + images) — authenticated.
+  - POST `/` — create property (multipart form + images) — authenticated host/admin. Accepted `property_type` values: `hotel`, `resort`, `apartment/shortlet`, `event_spaces`, `villa`.
   - PUT `/{property_id}` — update property — owner-only.
   - DELETE `/{property_id}` — deactivate property — owner or admin.
   - PATCH `/{property_id}/verify` — admin-only — set `is_verified`.
