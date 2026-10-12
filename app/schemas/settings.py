@@ -17,6 +17,7 @@ class ProfileSettingsRead(BaseModel):
     fullName: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
+    avatarUrl: Optional[str] = "https://res.cloudinary.com/demo/image/upload/v1/avatar.jpg"
     # A display label such as "Hotel Manager", not the raw role value.
     role: Optional[str] = None
 

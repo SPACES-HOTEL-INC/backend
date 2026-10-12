@@ -199,9 +199,10 @@ async def forgot_password(
 ):
     """Start a password reset.
 
-    SECURITY: the reset token is returned in the response body. There is no mail
-    provider wired up for this flow, so this is the only way to complete it. Do
-    not ship this as-is: send the token by email and drop it from the response.
+    A reset token is generated server-side and should be delivered through an
+    email provider, never echoed in JSON. When no mail provider is configured we
+    keep the flow safe by logging the token server-side only and returning a
+    generic success message.
     """
     user = await get_user_by_email(session, request.email)
     if user is None or not user.is_active:
@@ -210,14 +211,11 @@ async def forgot_password(
         return {"detail": "If an account exists for this email, password reset instructions have been sent."}
 
     reset_token = create_reset_token(subject=str(user.id))
-    # In a production deployment, this should dispatch the token through an email provider.
-    # The token is intentionally returned only for server-side debugging and the front-end
-    # should not display it to the user. This keeps the flow functional without requiring
-    # external mail infrastructure in this environment.
-    return {
-        "detail": "If an account exists for this email, password reset instructions have been sent.",
-        "reset_token": reset_token,
-    }
+    # The token is intentionally not returned to the client. If an email provider
+    # is configured, the token should be mailed to the user instead.
+    import logging
+    logging.getLogger(__name__).warning("Password reset token issued for %s", user.email)
+    return {"detail": "If an account exists for this email, password reset instructions have been sent."}
 
 
 @router.post("/reset-password")

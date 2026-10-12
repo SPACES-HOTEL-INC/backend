@@ -65,14 +65,19 @@ def create_reset_token(subject: str, expires_delta: timedelta | None = None) -> 
     return _create_token(subject, expires_delta, "reset")
 
 
-def decode_token(token: str) -> dict[str, Any]:
+def decode_token(token: str, expected_type: str | None = None) -> dict[str, Any]:
     """Verify signature and expiry, returning the claims.
 
     Raises ValueError for anything invalid or expired so callers can map a bad
-    token onto a single 401 response. Note this does not check `token_type`;
-    callers that care must assert on the claim themselves.
+    token onto a single 401 response. When `expected_type` is provided the claim
+    is enforced as an additional guard against token replay across auth flows.
     """
     try:
-        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError as exc:
         raise ValueError("Could not validate credentials") from exc
+
+    if expected_type is not None and payload.get("token_type") != expected_type:
+        raise ValueError(f"Invalid token type: expected {expected_type!r}")
+
+    return payload

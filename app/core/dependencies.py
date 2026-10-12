@@ -34,9 +34,10 @@ async def get_current_user(
     """
     token = credentials.credentials
 
-    # Catch token parsing/decoding errors gracefully
+    # Catch token parsing/decoding errors gracefully and reject refresh/reset
+    # tokens for access-protected routes.
     try:
-        payload = decode_token(token)
+        payload = decode_token(token, expected_type="access")
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -78,7 +79,7 @@ async def get_current_user_optional(
         return None
     token = credentials.credentials
     try:
-        payload = decode_token(token)
+        payload = decode_token(token, expected_type="access")
     except Exception:
         return None
 

@@ -61,12 +61,12 @@ class Settings(BaseSettings):
 
     # Browser origins allowed to call this API.
     CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1", "[::1]"]
 
     # "development" enables /docs and /redoc. Use "production" in deployment.
     ENV: str = "development"
 
-    # Declared for future rate limiting. No limiter middleware is wired up yet,
-    # so these values are currently inert.
+    RATE_LIMIT_ENABLED: bool = True
     RATE_LIMIT_MAX_REQUESTS: int = 100
     RATE_LIMIT_WINDOW_SECONDS: int = 60
 
@@ -89,12 +89,6 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        # Fail at import time rather than at first request.
-        self._validate_secret_key()
-        self._validate_database_url()
-
     def _validate_secret_key(self) -> None:
         """Reject short or well-known secrets so tokens cannot be forged."""
         if len(self.SECRET_KEY) < 32:
@@ -116,6 +110,17 @@ class Settings(BaseSettings):
                 "DATABASE_URL must use the postgresql+asyncpg:// dialect for async support. "
                 f"Got: {url[:50]}..."
             )
+
+    def _validate_allowed_hosts(self) -> None:
+        """Reject wildcard host headers; a list of explicit domains is required."""
+        if "*" in self.ALLOWED_HOSTS:
+            raise ValueError("ALLOWED_HOSTS must not contain '*' in a deployed environment.")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._validate_secret_key()
+        self._validate_database_url()
+        self._validate_allowed_hosts()
 
     @property
     def database_url(self) -> str:

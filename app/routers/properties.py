@@ -110,7 +110,7 @@ async def create_property_endpoint(
     description: str | None = Form(None),
     amenities: str | None = Form("[]"),
     images: list[UploadFile] = File(default=[]),
-    user=Depends(get_current_user),
+    user=Depends(require_host),
     session: AsyncSession = Depends(get_async_session),
 ):
     """Create a property, uploading any attached images.
