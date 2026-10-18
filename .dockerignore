@@ -1,0 +1,31 @@
+# Git and editor metadata
+.git
+.gitignore
+.vscode
+.idea
+
+# Python environment / build artifacts
+.venv
+venv
+__pycache__
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Local runtime data
+logs/
+static/uploads/
+.env
+.kilo
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Tests and docs (optional if you want a slimmer image)
+tests/
+README.md

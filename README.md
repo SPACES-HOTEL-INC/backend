@@ -4,9 +4,9 @@ A concise, developer-focused documentation for the Spaces backend service. This 
 
 ## Project Overview
 
-- **Name:** Spaces Backend API
-- **Purpose:** Backend for a short-stay/property booking service. Provides user registration & auth, property and room management, bookings, payments, and reviews.
-- **Stack:** FastAPI, SQLAlchemy (async), PostgreSQL (asyncpg), Pydantic (v2-style models), Cloudinary (optional for image uploads).
+- Name: Spaces Backend API
+- Purpose: Backend for a short-stay/property booking service. Provides user registration & auth, property and room management, bookings, payments, and reviews.
+- Stack: FastAPI, SQLAlchemy (async), PostgreSQL (asyncpg), Pydantic (v2-style models), Cloudinary (optional for image uploads).
 
 ## Quick Start
 
