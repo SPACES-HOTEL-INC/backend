@@ -89,7 +89,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Spaces Backend API",
+    title="SpaceAeon Backend API",
     version="0.1.0",
     lifespan=lifespan,
     # Interactive docs are disabled in production so the schema is not public.
@@ -127,6 +127,7 @@ app.add_middleware(
         "http://localhost:5173"
         "http://localhost:8080",
         "https://client-based.vercel.app",
+        "https://app.spaceaeon.online",
     ],
     allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
