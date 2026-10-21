@@ -6,14 +6,14 @@ plus parent property fields, built by hand because there is no schema for it.
 """
 
 import uuid
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile, status
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.cloudinary import upload_image_to_cloudinary
-from ..core.dependencies import require_host
+from ..core.dependencies import get_current_user, require_host
 from ..crud.property import get_property_by_id, list_host_properties
-from ..crud.room import create_room as crud_create_room, get_rooms_for_property
+from ..crud.room import create_room as crud_create_room, delete_room, get_room_by_id, get_rooms_for_property, room_has_active_bookings
 from ..database import get_async_session
 from ..models.room import Room
 from ..models.property import Property
@@ -140,6 +140,49 @@ async def list_room_with_files(
     return await crud_create_room(
         session=session, room_data=validated_payload, property_id=property_id
     )
+
+
+@router.delete(
+    "/{room_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        401: {"description": "Authentication required"},
+        404: {"description": "Room not found or not owned by the user"},
+        409: {"description": "Room has active bookings"},
+    },
+)
+async def delete_room_endpoint(
+    room_id: uuid.UUID,
+    current_user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Delete a room owned by the authenticated user.
+
+    The room must belong to a property owned by the caller. A room with any live
+    booking is protected from deletion with a 409 Conflict to prevent data loss.
+    """
+    room = await get_room_by_id(session, room_id)
+    if room is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found",
+        )
+
+    property_obj = await get_property_by_id(session, str(room.property_id))
+    if property_obj is None or str(property_obj.owner_id) != str(current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found or not owned by this user",
+        )
+
+    if await room_has_active_bookings(session, room.id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot delete room with active bookings. Cancel or complete existing bookings first.",
+        )
+
+    await delete_room(session, room)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/public", response_model=list[dict])
