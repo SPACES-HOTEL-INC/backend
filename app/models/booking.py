@@ -52,11 +52,34 @@ class Booking(Base):
         default=lambda: datetime.now(timezone.utc),
     )
 
-    room = relationship("Room", back_populates="bookings")
+    room = relationship("Room", back_populates="bookings", lazy="joined")
     user = relationship("User", back_populates="bookings")
     # One-to-one: a booking has at most one payment attempt and one review.
     payment = relationship("Payment", back_populates="booking")
     review = relationship("Review", back_populates="booking")
+
+    @property
+    def check_in_date(self):
+        if self.check_in is None:
+            return None
+        return self.check_in.date() if hasattr(self.check_in, "date") else self.check_in
+
+    @property
+    def check_out_date(self):
+        if self.check_out is None:
+            return None
+        return self.check_out.date() if hasattr(self.check_out, "date") else self.check_out
+
+    @property
+    def property_id(self):
+        """Expose the property for the booked room without changing the DB schema."""
+        return self.room.property_id if self.room else None
+
+    @property
+    def num_nights(self):
+        if self.check_in is None or self.check_out is None:
+            return None
+        return (self.check_out - self.check_in).days
 
     @property
     def guest_id(self):

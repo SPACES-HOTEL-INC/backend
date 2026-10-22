@@ -19,6 +19,12 @@ async def get_payment_by_id(session: AsyncSession, payment_id: str | uuid.UUID) 
     return result.scalar_one_or_none()
 
 
+async def get_payment_by_transaction_ref(session: AsyncSession, transaction_ref: str) -> Payment | None:
+    """Fetch a payment by the provider's reference, used by webhooks."""
+    result = await session.execute(select(Payment).where(Payment.transaction_ref == transaction_ref))
+    return result.scalar_one_or_none()
+
+
 async def list_payments_for_booking(session: AsyncSession, booking_id: str | uuid.UUID) -> list[Payment]:
     """Payment attempts against one booking. More than one is possible if a
     guest retries after a failure."""
@@ -46,7 +52,8 @@ async def create_payment(session: AsyncSession, payment_in: PaymentCreate) -> Pa
     insertion. The caller checks the amount against the booking.
     """
     data = payment_in.model_dump()
-    data["booking_id"] = uuid.UUID(data["booking_id"])
+    booking_id = data.get("booking_id")
+    data["booking_id"] = uuid.UUID(str(booking_id)) if booking_id is not None else None
     payment = Payment(**data)
     session.add(payment)
     await session.commit()

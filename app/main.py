@@ -81,9 +81,9 @@ async def lifespan(app: FastAPI):
         async with engine.begin() as conn:
             await conn.run_sync(lambda c: None)
         logger.info("Database connection established successfully.")
-    except SQLAlchemyError as exc:
+    except Exception as exc:
         logger.critical("Failed to connect to database on startup: %s", exc)
-        raise
+        logger.warning("Continuing startup despite database connection failure.")
     yield
     await engine.dispose()
 
@@ -121,13 +121,9 @@ app.add_middleware(
         "https://space-frontend-dev.vercel.app",
         "https://space-frontend-dev-git-main-samflixdps-projects.vercel.app",
         "http://localhost:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173"
-        "http://localhost:8080",
         "https://client-based.vercel.app",
         "https://app.spaceaeon.online",
+        "https://hm.spaceaeon.online",
     ],
     allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,

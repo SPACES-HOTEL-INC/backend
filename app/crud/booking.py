@@ -79,6 +79,7 @@ async def create_booking(session: AsyncSession, booking: BookingCreate, user_id:
         check_out=check_out,
         total_price=total_price,
     )
+    db_booking.room = room
     session.add(db_booking)
     await session.commit()
     await session.refresh(db_booking)
@@ -87,13 +88,13 @@ async def create_booking(session: AsyncSession, booking: BookingCreate, user_id:
 
 async def get_booking_by_id(session: AsyncSession, booking_id: uuid.UUID) -> Optional[Booking]:
     """Fetch one booking, or None. Callers do the ownership check."""
-    result = await session.execute(select(Booking).where(Booking.id == booking_id))
+    result = await session.execute(select(Booking).options(selectinload(Booking.room)).where(Booking.id == booking_id))
     return result.scalar_one_or_none()
 
 
 async def get_user_bookings(session: AsyncSession, user_id: uuid.UUID) -> List[Booking]:
     """Every booking made by this user, in any status."""
-    result = await session.execute(select(Booking).where(Booking.user_id == user_id))
+    result = await session.execute(select(Booking).options(selectinload(Booking.room)).where(Booking.user_id == user_id))
     return list(result.scalars().all())
 
 
@@ -172,7 +173,7 @@ async def get_conflicting_bookings(
 
 async def list_bookings_for_guest(session: AsyncSession, user_id: uuid.UUID) -> List[Booking]:
     """Bookings this user made as a guest, for the "my bookings" screen."""
-    result = await session.execute(select(Booking).where(Booking.user_id == user_id))
+    result = await session.execute(select(Booking).options(selectinload(Booking.room)).where(Booking.user_id == user_id))
     return list(result.scalars().all())
 
 
