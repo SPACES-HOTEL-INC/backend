@@ -80,6 +80,12 @@ class Settings(BaseSettings):
     # Shared secret for authenticating payment provider webhooks.
     PAYMENT_WEBHOOK_SECRET: str | None = None
 
+    # Flutterwave keys used when creating and verifying payment transactions.
+    FLW_PUBLIC_KEY: str = ""
+    FLW_SECRET_KEY: str = ""
+    FLW_ENCRYPTION_KEY: str = ""
+    FLW_BASE_URL: str = "https://api.flutterwave.com/v3"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

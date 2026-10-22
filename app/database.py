@@ -23,6 +23,7 @@ engine: AsyncEngine = create_async_engine(
     pool_timeout=30,
     pool_recycle=1800,
     pool_pre_ping=True,
+    connect_args={"statement_cache_size": 0},
 )
 # expire_on_commit=False keeps model attributes readable after commit, so code
 # can use a freshly written object without an extra SELECT.
