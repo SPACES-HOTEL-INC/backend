@@ -1,7 +1,12 @@
 import asyncio
 import socket
 
-from app.cache import delete_pattern, get_cache, set_cache
+from app.cache import build_redis_client, delete_pattern, get_cache, set_cache
+
+
+def test_invalid_redis_url_does_not_crash_import_path():
+    assert build_redis_client("${{ Redis.REDIS_PRIVATE_URL }}") is None
+    assert build_redis_client("not-a-url") is None
 
 
 def test_get_cache_returns_none_when_redis_unavailable(monkeypatch):
