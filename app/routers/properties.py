@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Upload
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..cache import delete_pattern, get_cache, set_cache
 from ..core.dependencies import get_current_user, require_admin, require_host
 from ..core.cloudinary import upload_image_to_cloudinary
 from ..crud.property import create_property, deactivate_property, get_property_by_id, list_host_properties, list_properties, update_property
@@ -26,6 +27,25 @@ router = APIRouter(prefix="/api/v1/properties", tags=["properties"])
 # Local fallback target for images when Cloudinary is unavailable or fails.
 UPLOAD_DIR = "static/uploads/properties"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+def serialize_property_for_cache(property_obj: Property) -> dict:
+    """Convert SQLAlchemy rows into cache-safe JSON-ready dictionaries."""
+    payload = dict(property_obj.__dict__)
+    payload.pop("_sa_instance_state", None)
+    if "owner_id" in payload and "host_id" not in payload:
+        payload["host_id"] = payload["owner_id"]
+    for key, value in list(payload.items()):
+        if isinstance(value, uuid.UUID):
+            payload[key] = str(value)
+        elif hasattr(value, "isoformat"):
+            payload[key] = value.isoformat()
+    return payload
+
+
+async def invalidate_property_search_cache() -> None:
+    """Clear cached search results after any list-changing property mutation."""
+    await delete_pattern("properties:search")
 
 
 @router.get("/", response_model=list[PropertyRead])
@@ -62,9 +82,17 @@ async def search_properties(
 
     # Offset/limit paging rather than keyset: the result set is small enough
     # that deep pages are not a practical concern.
+    cache_key = f"properties:search:{city or 'all'}:{property_type or 'all'}:{min_price}:{max_price}:{page}:{limit}"
+    cached = await get_cache(cache_key)
+    if cached is not None:
+        return cached
+
     query = query.offset((page - 1) * limit).limit(limit)
     result = await session.execute(query)
-    return result.scalars().all()
+    rows = result.scalars().all()
+    serialized_rows = [serialize_property_for_cache(row) for row in rows]
+    await set_cache(cache_key, serialized_rows)
+    return serialized_rows
 
 
 @router.get("/mine", response_model=list[PropertyRead])
@@ -195,7 +223,9 @@ async def create_property_endpoint(
     property_in = PropertyCreate(**create_data)
 
     # Owner comes from the token so a property cannot be created for someone else.
-    return await create_property(session, str(user.id), property_in)
+    property_obj = await create_property(session, str(user.id), property_in)
+    await invalidate_property_search_cache()
+    return property_obj
 
 
 @router.put("/{property_id}", response_model=PropertyRead)
@@ -211,7 +241,9 @@ async def update_property_endpoint(
     # that someone else's property exists.
     if not property_obj or str(property_obj.owner_id) != str(user.id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found or not owned")
-    return await update_property(session, property_obj, property_in)
+    updated_property = await update_property(session, property_obj, property_in)
+    await invalidate_property_search_cache()
+    return updated_property
 
 
 @router.delete("/{property_id}", response_model=PropertyRead)
@@ -228,7 +260,9 @@ async def delete_property_endpoint(
     property_obj = await get_property_by_id(session, str(property_id))
     if not property_obj or (str(property_obj.owner_id) != str(user.id) and not getattr(user, 'is_admin', False)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found or not owned")
-    return await deactivate_property(session, property_obj)
+    deleted_property = await deactivate_property(session, property_obj)
+    await invalidate_property_search_cache()
+    return deleted_property
 
 
 @router.patch("/{property_id}/verify", response_model=PropertyRead)
@@ -249,6 +283,7 @@ async def verify_property_endpoint(
     session.add(property_obj)
     await session.commit()
     await session.refresh(property_obj)
+    await invalidate_property_search_cache()
     return property_obj
 
 

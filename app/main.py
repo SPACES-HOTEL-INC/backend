@@ -19,6 +19,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
+from .cache import redis_client
 from .config import settings
 from .core import exceptions, logging
 from .core.exceptions import register_exception_handlers
@@ -78,6 +79,11 @@ async def lifespan(app: FastAPI):
     import logging
     logger = logging.getLogger(__name__)
     try:
+        await redis_client.ping()
+        logger.info("Redis connection established successfully.")
+    except Exception as exc:
+        logger.warning("Redis unavailable on startup: %s", exc)
+    try:
         async with engine.begin() as conn:
             await conn.run_sync(lambda c: None)
         logger.info("Database connection established successfully.")
@@ -86,6 +92,7 @@ async def lifespan(app: FastAPI):
         logger.warning("Continuing startup despite database connection failure.")
     yield
     await engine.dispose()
+    await redis_client.aclose()
 
 
 app = FastAPI(

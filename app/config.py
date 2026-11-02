@@ -47,6 +47,11 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = 5432
     DATABASE_URL: str | None = None
 
+    # Redis configuration for app-level caching. Use the Railway-provided
+    # REDIS_URL in production; local development falls back to a local Redis.
+    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_TTL_SECONDS: int = 300
+
     # Cloudinary Configuration
     CLOUDINARY_CLOUD_NAME: str = ""
     CLOUDINARY_API_KEY: str = ""
