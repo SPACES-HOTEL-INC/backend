@@ -53,13 +53,19 @@ async def register(user_in: UserCreate, session: AsyncSession = Depends(get_asyn
     ignored on that path, so registering with a known address cannot take over
     or re-credential someone else's account.
     """
+    requested_role = UserRole.coerce(user_in.role)
+    if requested_role == UserRole.RECEPTIONIST:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Receptionist accounts must be created by the hotel or host account.",
+        )
+
     existing_user = await get_user_by_email(session, user_in.email)
 
     if existing_user:
         # Email stays unique. A repeat registration attaches the requested role
         # to the existing account instead of creating a second row, which would
         # break every email lookup that expects one user per address.
-        requested_role = UserRole.coerce(user_in.role)
         already_held = existing_user.has_role(requested_role)
 
         if not already_held:
