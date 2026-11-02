@@ -10,10 +10,11 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.dependencies import get_current_user, require_host
+from ..core.dependencies import get_current_user, require_hotel_staff, require_host
 from ..crud.booking import (
     create_booking,
     get_booking_by_id,
+    list_all_bookings,
     list_bookings_for_guest,
     list_bookings_for_host,
     cancel_booking
@@ -51,11 +52,14 @@ async def get_my_bookings(
 
 @router.get("/host-bookings", response_model=list[BookingReadWithRelations])
 async def get_my_property_bookings(
-    user = Depends(require_host),
+    user = Depends(require_hotel_staff),
     session: AsyncSession = Depends(get_async_session)
 ):
-    """Bookings received across the host's properties, with guest and property
-    details included."""
+    """Bookings received across the hotel's properties, with guest and property
+    details included. Receptionists see the same hotel-wide booking feed without
+    owning the property themselves."""
+    if user.is_receptionist:
+        return await list_all_bookings(session)
     return await list_bookings_for_host(session, user.id)
 
 

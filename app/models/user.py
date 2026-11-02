@@ -16,13 +16,14 @@ from ..database import Base
 
 
 class UserRole(str, PyEnum):
-    """The three roles in the system.
+    """The roles in the system.
 
     Inherits from `str` so members compare and serialise like plain strings.
     """
 
     CONSUMER = "consumer"
     HOST = "host"
+    RECEPTIONIST = "receptionist"
     ADMIN = "admin"
 
     @classmethod
@@ -41,6 +42,8 @@ class UserRole(str, PyEnum):
             normalized = value.strip().lower()
             mapping = {
                 "hotel": cls.HOST, "host": cls.HOST, "hot": cls.HOST,
+                "receptionist": cls.RECEPTIONIST, "reception": cls.RECEPTIONIST,
+                "frontdesk": cls.RECEPTIONIST, "front_desk": cls.RECEPTIONIST,
                 "admin": cls.ADMIN, "administrator": cls.ADMIN, "superadmin": cls.ADMIN,
                 "consumer": cls.CONSUMER, "guest": cls.CONSUMER, "user": cls.CONSUMER, "customer": cls.CONSUMER,
             }
@@ -63,6 +66,7 @@ class UserRoleType(TypeDecorator):
     _ROLE_MAPPING = {
         UserRole.CONSUMER: "CONSUMER",
         UserRole.HOST: "HOTEL",
+        UserRole.RECEPTIONIST: "RECEPTIONIST",
         UserRole.ADMIN: "ADMIN",
     }
 
@@ -70,7 +74,7 @@ class UserRoleType(TypeDecorator):
         """Use the real enum on Postgres, plain VARCHAR elsewhere (e.g. tests)."""
         if dialect.name == "postgresql":
             return PGEnum(
-                "CONSUMER", "HOTEL", "ADMIN",
+                "CONSUMER", "HOTEL", "RECEPTIONIST", "ADMIN",
                 name="userrole",
                 # The type is created by a migration, not by table creation.
                 create_type=False,
@@ -93,6 +97,8 @@ class UserRoleType(TypeDecorator):
         mapping = {
             "consumer": UserRole.CONSUMER, "guest": UserRole.CONSUMER, "user": UserRole.CONSUMER,
             "hotel": UserRole.HOST, "host": UserRole.HOST, "hot": UserRole.HOST,
+            "receptionist": UserRole.RECEPTIONIST, "reception": UserRole.RECEPTIONIST,
+            "frontdesk": UserRole.RECEPTIONIST, "front_desk": UserRole.RECEPTIONIST,
             "admin": UserRole.ADMIN, "administrator": UserRole.ADMIN, "superadmin": UserRole.ADMIN,
         }
         return mapping.get(normalized, UserRole.CONSUMER)
@@ -156,6 +162,8 @@ class User(Base):
         normalized = str(value).strip().upper()
         if normalized == "HOTEL":
             return UserRole.HOST
+        if normalized == "RECEPTIONIST":
+            return UserRole.RECEPTIONIST
         if normalized == "ADMIN":
             return UserRole.ADMIN
         return UserRole.CONSUMER
@@ -169,6 +177,8 @@ class User(Base):
                 self._role = "HOTEL"
             elif value == UserRole.ADMIN:
                 self._role = "ADMIN"
+            elif value == UserRole.RECEPTIONIST:
+                self._role = "RECEPTIONIST"
             else:
                 self._role = "CONSUMER"
         else:
@@ -177,6 +187,8 @@ class User(Base):
                 self._role = "HOTEL"
             elif coerced == UserRole.ADMIN:
                 self._role = "ADMIN"
+            elif coerced == UserRole.RECEPTIONIST:
+                self._role = "RECEPTIONIST"
             else:
                 self._role = "CONSUMER"
 
@@ -205,8 +217,8 @@ class User(Base):
         if resolved in current:
             return False
         current.add(resolved)
-        # CONSUMER first, then HOST, then ADMIN, so the list reads predictably.
-        order = [UserRole.CONSUMER, UserRole.HOST, UserRole.ADMIN]
+        # CONSUMER first, then HOST, then RECEPTIONIST, then ADMIN, so the list reads predictably.
+        order = [UserRole.CONSUMER, UserRole.HOST, UserRole.RECEPTIONIST, UserRole.ADMIN]
         self.roles = [r.value for r in order if r in current]
         return True
 
@@ -226,6 +238,16 @@ class User(Base):
     def is_host(self) -> bool:
         """True for hotel owners and for admins, who can do everything a host can."""
         return self.has_role(UserRole.HOST) or self.has_role(UserRole.ADMIN)
+
+    @property
+    def is_receptionist(self) -> bool:
+        """True for hotel staff who manage operations without owning the hotel."""
+        return self.has_role(UserRole.RECEPTIONIST)
+
+    @property
+    def is_hotel_staff(self) -> bool:
+        """Hotel operations staff: owners, admins and receptionists."""
+        return self.is_host or self.is_receptionist
 
     @property
     def is_admin(self) -> bool:

@@ -100,12 +100,23 @@ def require_admin(user: User = Depends(get_current_user)) -> User:
     return user
 
 
+def require_hotel_staff(user: User = Depends(get_current_user)) -> User:
+    """Dependency guard: authenticated *and* hotel operations staff, else 403.
+
+    Hosts and admins already pass here, and receptionists are allowed to manage
+    day-to-day hotel operations without owning the property.
+    """
+    if not user.is_hotel_staff:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Hotel staff access required")
+    return user
+
+
 def require_host(user: User = Depends(get_current_user)) -> User:
     """Dependency guard: authenticated *and* a host, else 403.
 
-    Admins also satisfy this, since `is_host` is true for them. An account
-    holding both consumer and host roles passes it too.
+    For hotel staff routes, use `require_hotel_staff` so receptionists can help
+    manage rooms, properties and bookings without inheriting full ownership.
     """
-    if not user.is_host:
+    if not user.is_host and not user.is_receptionist:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Host access required")
     return user

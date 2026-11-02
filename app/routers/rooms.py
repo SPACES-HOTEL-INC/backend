@@ -25,10 +25,10 @@ router = APIRouter(prefix="/api/v1/rooms", tags=["rooms"])
 async def _verify_property_ownership(
     property_id: uuid.UUID, user, session: AsyncSession
 ) -> None:
-    """Assert the caller owns an active property.
+    """Assert the caller can manage an active property.
 
-    Returns nothing; it raises the appropriate 404/400/403 so each caller can
-    stay a one-liner.
+    Hosts own their properties, while receptionists are allowed to manage the
+    hotel's rooms and property records without being the owner themselves.
     """
     property_obj = await get_property_by_id(session, str(property_id))
     if not property_obj:
@@ -40,7 +40,7 @@ async def _verify_property_ownership(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Property is not active"
         )
-    if str(property_obj.owner_id) != str(user.id):
+    if str(property_obj.owner_id) != str(user.id) and not user.is_receptionist and not user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to add rooms to this property",
@@ -57,6 +57,10 @@ async def list_rooms_for_host(
     if property_id is not None:
         await _verify_property_ownership(property_id, user, session)
         return await get_rooms_for_property(session, property_id)
+
+    if user.is_receptionist:
+        result = await session.execute(select(Room).order_by(Room.title.asc()))
+        return result.scalars().all()
 
     # No filter: gather the host's property ids first, then query rooms in one
     # round trip rather than per property.

@@ -97,16 +97,17 @@ async def search_properties(
 
 @router.get("/mine", response_model=list[PropertyRead])
 async def read_my_properties(
-    user=Depends(get_current_user), 
+    user=Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session)
 ):
+    """Fetch this user's hotel properties.
+
+    Hosts view their own properties; receptionists see the hotel's property list
+    so they can manage rooms and bookings without owning the listing.
     """
-    Fetch all properties owned by the currently authenticated user.
-    Uses get_current_user to prevent 403 Forbidden errors when fetching owned branches.
-    """
-    # Note: this includes inactive properties, so an owner can see their
-    # soft-deleted listings here even though search omits them.
     try:
+        if user.is_receptionist:
+            return await list_properties(session)
         properties = await list_host_properties(session, str(user.id))
         return properties
     except Exception as e:
@@ -238,8 +239,11 @@ async def update_property_endpoint(
     """Replace a property's editable fields. Owner only."""
     property_obj = await get_property_by_id(session, str(property_id))
     # A non-owner gets 404 rather than 403, so the endpoint does not confirm
-    # that someone else's property exists.
-    if not property_obj or str(property_obj.owner_id) != str(user.id):
+    # that someone else's property exists. Hotel staff can manage the property
+    # list even when they do not personally own the listing.
+    if not property_obj:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found")
+    if str(property_obj.owner_id) != str(user.id) and not user.is_receptionist and not user.is_admin:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found or not owned")
     updated_property = await update_property(session, property_obj, property_in)
     await invalidate_property_search_cache()
@@ -258,7 +262,11 @@ async def delete_property_endpoint(
     their references.
     """
     property_obj = await get_property_by_id(session, str(property_id))
-    if not property_obj or (str(property_obj.owner_id) != str(user.id) and not getattr(user, 'is_admin', False)):
+    if not property_obj or (
+        str(property_obj.owner_id) != str(user.id)
+        and not getattr(user, 'is_admin', False)
+        and not getattr(user, 'is_receptionist', False)
+    ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found or not owned")
     deleted_property = await deactivate_property(session, property_obj)
     await invalidate_property_search_cache()
