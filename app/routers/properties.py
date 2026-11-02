@@ -107,7 +107,10 @@ async def read_my_properties(
     """
     try:
         if user.is_receptionist:
-            return await list_properties(session)
+            if user.hotel_id is None:
+                return []
+            result = await session.execute(select(Property).where(Property.owner_id == user.hotel_id, Property.is_active == True))
+            return result.scalars().all()
         properties = await list_host_properties(session, str(user.id))
         return properties
     except Exception as e:
@@ -243,7 +246,7 @@ async def update_property_endpoint(
     # list even when they do not personally own the listing.
     if not property_obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found")
-    if str(property_obj.owner_id) != str(user.id) and not user.is_receptionist and not user.is_admin:
+    if not user.can_access_hotel(property_obj.owner_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found or not owned")
     updated_property = await update_property(session, property_obj, property_in)
     await invalidate_property_search_cache()
@@ -262,11 +265,7 @@ async def delete_property_endpoint(
     their references.
     """
     property_obj = await get_property_by_id(session, str(property_id))
-    if not property_obj or (
-        str(property_obj.owner_id) != str(user.id)
-        and not getattr(user, 'is_admin', False)
-        and not getattr(user, 'is_receptionist', False)
-    ):
+    if not property_obj or not user.can_access_hotel(property_obj.owner_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found or not owned")
     deleted_property = await deactivate_property(session, property_obj)
     await invalidate_property_search_cache()

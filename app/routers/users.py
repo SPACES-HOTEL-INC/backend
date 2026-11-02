@@ -42,21 +42,28 @@ async def update_current_user(
 @router.post("/receptionists", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def create_receptionist(
     user_in: UserCreate,
+    current_user=Depends(get_current_user),
     _=Depends(require_host),
     session: AsyncSession = Depends(get_async_session),
 ):
     """Create a hotel receptionist account for the signed-in host.
 
-    The backend sets the staff account to verified immediately so the hotel can
-    issue a password and the receptionist can sign in without a separate OTP step.
+    The account is explicitly bound to the creating hotel so the receptionist can
+    only view that hotel's properties, rooms, and bookings.
     """
     payload = user_in.model_copy(update={"role": "receptionist"})
     existing = await get_user_by_email(session, payload.email)
 
     if existing:
         if existing.has_role(UserRole.RECEPTIONIST):
+            existing.hotel_id = current_user.id
+            existing.is_verified = True
+            session.add(existing)
+            await session.commit()
+            await session.refresh(existing)
             return existing
         await add_role_to_user(session, existing, UserRole.RECEPTIONIST)
+        existing.hotel_id = current_user.id
         existing.is_verified = True
         session.add(existing)
         await session.commit()
@@ -64,6 +71,7 @@ async def create_receptionist(
         return existing
 
     user = await create_user(session, payload)
+    user.hotel_id = current_user.id
     user.is_verified = True
     session.add(user)
     await session.commit()

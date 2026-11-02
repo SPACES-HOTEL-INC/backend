@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -35,3 +36,19 @@ def test_receptionist_self_registration_is_rejected():
         assert "hotel" in str(exc.value.detail).lower()
 
     asyncio.run(_run())
+
+
+def test_receptionist_is_bound_to_the_creating_hotel():
+    host = User(email="host@example.com", hashed_password="hash")
+    host.id = uuid.uuid4()
+    host.role = UserRole.HOST
+
+    other_hotel = User(email="other@example.com", hashed_password="hash")
+    other_hotel.id = uuid.uuid4()
+
+    receptionist = User(email="staff@example.com", hashed_password="hash")
+    receptionist.role = UserRole.RECEPTIONIST
+    receptionist.hotel_id = host.id
+
+    assert receptionist.can_access_hotel(host.id)
+    assert not receptionist.can_access_hotel(other_hotel.id)

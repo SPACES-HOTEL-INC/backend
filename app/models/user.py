@@ -132,6 +132,12 @@ class User(Base):
     # existing reads, gates and enum storage keep behaving exactly as before.
     roles = Column(JSON, nullable=False, default=list)
 
+    # A receptionist is assigned to the host that created them, so staff access
+    # can be restricted to that single hotel instead of every property in the app.
+    hotel_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
+    hotel = relationship("User", remote_side="User.id", foreign_keys=[hotel_id], back_populates="receptionists")
+    receptionists = relationship("User", back_populates="hotel", foreign_keys=[hotel_id])
+
     # A user manages at most one property in the current design.
     owned_property = relationship("Property", back_populates="owner", uselist=False)
     bookings = relationship("Booking", back_populates="user")
@@ -233,6 +239,24 @@ class User(Base):
         except ValueError:
             return False
         return resolved in self.get_roles()
+
+    def can_access_hotel(self, hotel_id: uuid.UUID | str | None) -> bool:
+        """Return True when this account may view data for a given hotel.
+
+        Hosts own their own hotel, admins can access any hotel, and receptionists
+        are limited to the one hotel that created their account.
+        """
+        if hotel_id is None:
+            return False
+        target_id = str(hotel_id)
+
+        if self.is_admin:
+            return True
+        if self.is_host:
+            return str(self.id) == target_id
+        if self.is_receptionist:
+            return self.hotel_id is not None and str(self.hotel_id) == target_id
+        return False
 
     @property
     def is_host(self) -> bool:

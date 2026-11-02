@@ -14,8 +14,8 @@ from ..core.dependencies import get_current_user, require_hotel_staff, require_h
 from ..crud.booking import (
     create_booking,
     get_booking_by_id,
-    list_all_bookings,
     list_bookings_for_guest,
+    list_bookings_for_hotel,
     list_bookings_for_host,
     cancel_booking
 )
@@ -59,7 +59,7 @@ async def get_my_property_bookings(
     details included. Receptionists see the same hotel-wide booking feed without
     owning the property themselves."""
     if user.is_receptionist:
-        return await list_all_bookings(session)
+        return await list_bookings_for_hotel(session, user.hotel_id)
     return await list_bookings_for_host(session, user.id)
 
 

@@ -77,6 +77,7 @@ class UserRead(BaseModel):
 
     id: uuid.UUID
     email: EmailStr
+    hotel_id: Optional[uuid.UUID] = None
     # Primary role, unchanged for existing clients.
     role: str
     is_active: bool = True

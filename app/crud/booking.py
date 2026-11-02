@@ -177,12 +177,13 @@ async def list_bookings_for_guest(session: AsyncSession, user_id: uuid.UUID) -> 
     return list(result.scalars().all())
 
 
-async def list_all_bookings(session: AsyncSession) -> List[Booking]:
-    """Every hotel booking, used by supported hotel staff such as receptionists."""
+async def list_bookings_for_hotel(session: AsyncSession, hotel_id: uuid.UUID) -> List[Booking]:
+    """Every booking for the given hotel, scoped to the host that created the receptionist."""
     result = await session.execute(
         select(Booking)
         .join(Room, Booking.room_id == Room.id)
         .join(Property, Room.property_id == Property.id)
+        .where(Property.owner_id == hotel_id)
         .options(
             selectinload(Booking.room).selectinload(Room.property),
             selectinload(Booking.user),

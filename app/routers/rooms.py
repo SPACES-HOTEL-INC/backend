@@ -40,7 +40,7 @@ async def _verify_property_ownership(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Property is not active"
         )
-    if str(property_obj.owner_id) != str(user.id) and not user.is_receptionist and not user.is_admin:
+    if not user.can_access_hotel(property_obj.owner_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to add rooms to this property",
@@ -59,7 +59,14 @@ async def list_rooms_for_host(
         return await get_rooms_for_property(session, property_id)
 
     if user.is_receptionist:
-        result = await session.execute(select(Room).order_by(Room.title.asc()))
+        if user.hotel_id is None:
+            return []
+        result = await session.execute(
+            select(Room)
+            .join(Property, Room.property_id == Property.id)
+            .where(Property.owner_id == user.hotel_id)
+            .order_by(Room.title.asc())
+        )
         return result.scalars().all()
 
     # No filter: gather the host's property ids first, then query rooms in one
