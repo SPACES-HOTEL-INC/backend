@@ -8,7 +8,7 @@ a consumer on the same account.
 import uuid
 from enum import Enum as PyEnum
 
-from sqlalchemy import Boolean, Column, DateTime, JSON, String, TypeDecorator
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, JSON, String, TypeDecorator
 from sqlalchemy.dialects.postgresql import ENUM as PGEnum, UUID
 from sqlalchemy.orm import relationship
 
