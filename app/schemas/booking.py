@@ -66,8 +66,14 @@ class BookingUpdate(BaseModel):
 
     # Mirrors BookingStatus. Kept as a Literal so the API documents the values
     # without importing the model layer.
-    status: Literal["pending", "confirmed", "cancelled", "completed", "no_show"] | None = None
+    status: Literal["pending", "confirmed", "checked_in", "cancelled", "completed", "no_show"] | None = None
     special_requests: str | None = Field(None, max_length=2000)
+
+
+class BookingCheckIn(BaseModel):
+    """Guest arrival validation using the SPC code sent to the guest."""
+
+    spc_code: str = Field(..., min_length=4, max_length=32)
 
 
 class BookingRead(BookingBase):
@@ -78,7 +84,9 @@ class BookingRead(BookingBase):
     guest_id: uuid.UUID
     num_nights: int | None = None
     total_price: float | None = None
-    status: Literal["pending", "confirmed", "cancelled", "completed", "no_show"]
+    spc_code: str | None = None
+    checked_in_at: datetime | None = None
+    status: Literal["pending", "confirmed", "checked_in", "cancelled", "completed", "no_show"]
     created_at: datetime
     updated_at: datetime | None = None
 

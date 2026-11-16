@@ -16,18 +16,29 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column('users', sa.Column('hotel_id', sa.UUID(as_uuid=True), nullable=True))
-    op.create_index(op.f('ix_users_hotel_id'), 'users', ['hotel_id'], unique=False)
-    op.create_foreign_key(
-        'fk_users_hotel_id_users',
-        'users',
-        'users',
-        ['hotel_id'],
-        ['id'],
+    op.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS hotel_id UUID;")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_users_hotel_id ON users (hotel_id);")
+    op.execute(
+        """
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1
+                FROM pg_constraint
+                WHERE conname = 'fk_users_hotel_id_users'
+            ) THEN
+                ALTER TABLE users
+                ADD CONSTRAINT fk_users_hotel_id_users
+                FOREIGN KEY (hotel_id) REFERENCES users(id);
+            END IF;
+        END $$;
+        """
     )
 
 
 def downgrade():
-    op.drop_constraint('fk_users_hotel_id_users', 'users', type_='foreignkey')
-    op.drop_index(op.f('ix_users_hotel_id'), table_name='users')
-    op.drop_column('users', 'hotel_id')
+    op.execute(
+        "DO $$ BEGIN IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_users_hotel_id_users') THEN ALTER TABLE users DROP CONSTRAINT fk_users_hotel_id_users; END IF; END $$;"
+    )
+    op.execute("DROP INDEX IF EXISTS ix_users_hotel_id;")
+    op.execute("ALTER TABLE users DROP COLUMN IF EXISTS hotel_id;")

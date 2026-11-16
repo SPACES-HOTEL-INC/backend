@@ -5,8 +5,10 @@ crud/user.py, because every failure here maps to a specific status code the
 router should pass straight through.
 """
 
+import secrets
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 from enum import Enum as PyEnum
 from typing import List, Optional
 
@@ -21,6 +23,12 @@ from ..models.booking import Booking, BookingStatus
 from ..models.room import Room
 from ..schemas.booking import BookingCreate, BookingUpdate
 from ..models.user import User
+
+
+def generate_spc_code() -> str:
+    """Create a one-time guest check-in code used by reception to validate arrival."""
+    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    return f"SPC-{''.join(secrets.choice(alphabet) for _ in range(6))}"
 
 
 async def create_booking(session: AsyncSession, booking: BookingCreate, user_id: uuid.UUID) -> Booking:
@@ -73,11 +81,13 @@ async def create_booking(session: AsyncSession, booking: BookingCreate, user_id:
     db_booking = Booking(
         user_id=user_id,
         room_id=booking.room_id,
-        # Every new booking starts unconfirmed.
+        # Every new booking starts unconfirmed; the SPC code is generated once the
+        # booking record exists and can be emailed or sent to the guest.
         status=BookingStatus.PENDING,
         check_in=check_in,
         check_out=check_out,
         total_price=total_price,
+        spc_code=generate_spc_code(),
     )
     db_booking.room = room
     session.add(db_booking)
@@ -133,14 +143,79 @@ async def update_booking(session: AsyncSession, booking_id: uuid.UUID, booking_u
     return db_booking
 
 
+async def hold_booking_wallet_funds(session: AsyncSession, booking_id: uuid.UUID) -> Booking:
+    """Put the booking amount into the property's pending wallet once payment succeeds.
+
+    This is deliberately additive: existing booking/payment logic keeps working,
+    and the hotel can see the amount as pending until the guest is checked in.
+    """
+    db_booking = await get_booking_by_id(session, booking_id)
+    if not db_booking or db_booking.room is None:
+        return db_booking
+
+    property_id = db_booking.room.property_id
+    if property_id is None:
+        return db_booking
+
+    property_obj = await session.get(Property, property_id)
+    if property_obj is None or db_booking.total_price is None:
+        return db_booking
+
+    amount = Decimal(str(db_booking.total_price))
+    current_pending = Decimal(str(property_obj.pending_balance or 0))
+    property_obj.pending_balance = float(current_pending + amount)
+    session.add(property_obj)
+    await session.commit()
+    await session.refresh(property_obj)
+    return db_booking
+
+
+async def release_booking_wallet_funds(session: AsyncSession, booking_id: uuid.UUID) -> Booking:
+    """Convert pending funds to cleared funds once the guest is checked in."""
+    db_booking = await get_booking_by_id(session, booking_id)
+    if not db_booking or db_booking.room is None:
+        return db_booking
+
+    property_id = db_booking.room.property_id
+    if property_id is None or db_booking.total_price is None:
+        return db_booking
+
+    property_obj = await session.get(Property, property_id)
+    if property_obj is None:
+        return db_booking
+
+    amount = Decimal(str(db_booking.total_price))
+    current_pending = Decimal(str(property_obj.pending_balance or 0))
+    current_balance = Decimal(str(property_obj.balance or 0))
+
+    if current_pending >= amount:
+        property_obj.pending_balance = float(current_pending - amount)
+        property_obj.balance = float(current_balance + amount)
+    else:
+        property_obj.pending_balance = 0
+        property_obj.balance = float(current_balance + current_pending)
+
+    session.add(property_obj)
+    await session.commit()
+    await session.refresh(property_obj)
+    return db_booking
+
+
 async def cancel_booking(session: AsyncSession, booking_id: uuid.UUID) -> Booking:
     """Mark a booking cancelled.
 
     The row is kept rather than deleted, so payment and review history survive.
+    Cancellation is refused once reception has already checked the guest in.
     """
     db_booking = await get_booking_by_id(session, booking_id)
     if not db_booking:
         raise HTTPException(status_code=404, detail="Booking not found")
+
+    if db_booking.status == BookingStatus.CHECKED_IN or db_booking.checked_in_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cancellation not allowed after check-in has started.",
+        )
 
     db_booking.status = BookingStatus.CANCELLED
     session.add(db_booking)

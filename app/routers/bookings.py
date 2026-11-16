@@ -7,6 +7,8 @@ route match.
 """
 
 import uuid
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,12 +19,14 @@ from ..crud.booking import (
     list_bookings_for_guest,
     list_bookings_for_hotel,
     list_bookings_for_host,
-    cancel_booking
+    cancel_booking,
+    release_booking_wallet_funds,
 )
 from ..crud.property import get_property_by_id
 from ..database import get_async_session
-from ..schemas.booking import BookingCreate, BookingRead, BookingReadWithRelations
+from ..models.booking import BookingStatus
 from ..models.user import User
+from ..schemas.booking import BookingCheckIn, BookingCreate, BookingRead, BookingReadWithRelations
 
 router = APIRouter(prefix="/api/v1/bookings", tags=["bookings"])
 
@@ -78,6 +82,41 @@ async def get_booking(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
     if str(booking.user_id) != str(user.id) and not user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+    return booking
+
+
+@router.post("/{booking_id}/check-in", response_model=BookingRead)
+async def check_in_booking_endpoint(
+    booking_id: uuid.UUID,
+    payload: BookingCheckIn,
+    user: User = Depends(require_hotel_staff),
+    session: AsyncSession = Depends(get_async_session)
+):
+    """Validate the guest's SPC code and mark them as checked in.
+
+    Only hotel staff can do this; the guest can no longer cancel once the code has
+    been used to start the stay.
+    """
+    booking = await get_booking_by_id(session, booking_id)
+    if not booking:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
+
+    if booking.status == BookingStatus.CANCELLED:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Booking is cancelled and cannot be checked in.")
+    if booking.status == BookingStatus.COMPLETED:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Booking already completed.")
+    if booking.spc_code is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This booking has no SPC code assigned.")
+
+    if booking.spc_code.strip().upper() != payload.spc_code.strip().upper():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid SPC code.")
+
+    booking.status = BookingStatus.CHECKED_IN
+    booking.checked_in_at = datetime.now(timezone.utc)
+    await release_booking_wallet_funds(session, booking_id)
+    session.add(booking)
+    await session.commit()
+    await session.refresh(booking)
     return booking
 
 

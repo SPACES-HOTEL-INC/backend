@@ -48,7 +48,11 @@ class Property(Base):
     is_active = Column(Boolean, default=True, nullable=False, index=True)
 
     # Money, so Numeric rather than Float. Scale 2, two decimal places.
+    # `balance` is the cleared wallet value available to the hotel, while
+    # `pending_balance` holds funds that are already paid but not yet released
+    # for the stay until the guest is checked in with the SPC code.
     balance = Column(Numeric(10, 2), default=0.00)
+    pending_balance = Column(Numeric(10, 2), default=0.00)
     bank_details = Column(JSON, nullable=True)
 
     owner = relationship("User", back_populates="owned_property")

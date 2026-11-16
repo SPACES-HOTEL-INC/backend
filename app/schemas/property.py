@@ -135,6 +135,8 @@ class PropertyRead(PropertyBase):
     id: uuid.UUID
     # The owner's user id. Read from the model's `host_id` property.
     host_id: uuid.UUID
+    balance: float = 0.0
+    pending_balance: float = 0.0
     is_verified: bool = False
     avg_rating: float = 0.0
     total_reviews: int = 0

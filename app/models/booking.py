@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from enum import Enum as PyEnum
 
-from sqlalchemy import Column, DateTime, Enum as SQLEnum, Float, ForeignKey, func
+from sqlalchemy import Column, DateTime, Enum as SQLEnum, Float, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -14,12 +14,15 @@ from ..database import Base
 class BookingStatus(str, PyEnum):
     """Lifecycle of a reservation.
 
-    New bookings start PENDING; a host or the system moves them to CONFIRMED,
-    then COMPLETED, or CANCELLED / NO_SHOW if the stay does not happen.
+    New bookings start PENDING; once the hotel confirms the stay it becomes
+    CONFIRMED. When reception validates the guest's SPC code, it moves to
+    CHECKED_IN and the stay is in progress. Later it can become COMPLETED or
+    CANCELLED / NO_SHOW if the stay does not happen.
     """
 
     PENDING = "pending"
     CONFIRMED = "confirmed"
+    CHECKED_IN = "checked_in"
     CANCELLED = "cancelled"
     COMPLETED = "completed"
     NO_SHOW = "no_show"
@@ -43,6 +46,9 @@ class Booking(Base):
     # Overlap queries treat them as a half-open range: [check_in, check_out).
     check_in = Column(DateTime(timezone=True), nullable=True)
     check_out = Column(DateTime(timezone=True), nullable=True)
+    # Hotel staff verify the guest with an SPC code when they arrive.
+    spc_code = Column(String(32), nullable=True, unique=True)
+    checked_in_at = Column(DateTime(timezone=True), nullable=True)
     # Priced at creation time so later rate changes do not alter past bookings.
     total_price = Column(Float, nullable=True)
     # Database-side default as well, so rows created outside the app still get one.

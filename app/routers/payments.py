@@ -23,7 +23,7 @@ from ..core.flutterwave import (
     verify_flutterwave_transaction,
     verify_webhook_signature,
 )
-from ..crud.booking import get_booking_by_id
+from ..crud.booking import get_booking_by_id, hold_booking_wallet_funds
 from ..crud.payment import (
     create_payment,
     get_payment_by_id,
@@ -133,6 +133,7 @@ async def payment_webhook(request: Request, session: AsyncSession = Depends(get_
     if status_value in {"successful", "success"}:
         payment.status = PaymentStatus.success
         payment.paid_at = datetime.now(timezone.utc)
+        await hold_booking_wallet_funds(session, payment.booking_id)
     elif status_value in {"failed", "failure", "cancelled"}:
         payment.status = PaymentStatus.failed
     else:
