@@ -150,6 +150,7 @@ app.include_router(public_properties.router)
 app.include_router(rooms.router)
 app.include_router(bookings.router)
 app.include_router(payments.router)
+app.include_router(payments.callback_router)
 app.include_router(reviews.router)
 app.include_router(support.router)
 

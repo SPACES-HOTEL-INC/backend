@@ -9,7 +9,7 @@ import os
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -23,7 +23,11 @@ from ..core.flutterwave import (
     verify_flutterwave_transaction,
     verify_webhook_signature,
 )
-from ..crud.booking import get_booking_by_id, hold_booking_wallet_funds
+from ..crud.booking import (
+    get_booking_by_id,
+    hold_booking_wallet_funds,
+    reverse_booking_wallet_hold,
+)
 from ..crud.payment import (
     create_payment,
     get_payment_by_id,
@@ -36,6 +40,7 @@ from ..models.payment import Payment, PaymentStatus
 from ..schemas.payment import PaymentCreate, PaymentRead, PaymentUpdate
 
 router = APIRouter(prefix="/api/v1/payments", tags=["payments"])
+callback_router = APIRouter(tags=["payments"])
 
 
 @router.post("/initiate", response_model=PaymentRead, status_code=status.HTTP_201_CREATED)
@@ -53,7 +58,9 @@ async def initiate_payment(payment_in: PaymentCreate, user=Depends(get_current_u
 
     payment = await create_payment(session, payment_in)
     tx_ref = make_tx_ref("spaces")
-    redirect_url = os.getenv("PAYMENT_REDIRECT_URL", "http://localhost:3000/payment/callback")
+    redirect_url = settings.PAYMENT_REDIRECT_URL or os.getenv(
+        "PAYMENT_REDIRECT_URL", "http://localhost:8000/payment/callback"
+    )
     payload = build_checkout_payload(
         amount=payment.amount,
         currency=payment.currency,
@@ -116,7 +123,7 @@ async def payment_webhook(request: Request, session: AsyncSession = Depends(get_
     webhook_secret = settings.PAYMENT_WEBHOOK_SECRET or os.getenv("PAYMENT_WEBHOOK_SECRET")
 
     if not webhook_secret:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Webhook secret not configured")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Webhook verification is temporarily unavailable")
     if not verify_webhook_signature(raw_body, signature, webhook_secret):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid webhook signature")
 
@@ -129,13 +136,32 @@ async def payment_webhook(request: Request, session: AsyncSession = Depends(get_
     if not payment:
         return {"status": "ignored", "message": "Payment not found for transaction reference"}
 
-    status_value = str(event_data.get("status", "")).lower()
-    if status_value in {"successful", "success"}:
-        payment.status = PaymentStatus.success
-        payment.paid_at = datetime.now(timezone.utc)
-        await hold_booking_wallet_funds(session, payment.booking_id)
-    elif status_value in {"failed", "failure", "cancelled"}:
-        payment.status = PaymentStatus.failed
+    status_value = str(event_data.get("status", ""))
+    await apply_payment_status(session, payment, status_value, payload)
+
+    return {"status": "ok", "payment_id": str(payment.id), "payment_status": payment.status.value}
+
+
+async def apply_payment_status(session: AsyncSession, payment: Payment, status_value: str, payload: dict) -> Payment:
+    """Apply a gateway status once; repeated callbacks must not duplicate wallet holds."""
+    normalized = str(status_value).lower()
+
+    if normalized in {"successful", "success", "completed", "paid"}:
+        if payment.status not in {PaymentStatus.success, PaymentStatus.refunded}:
+            payment.status = PaymentStatus.success
+            payment.paid_at = datetime.now(timezone.utc)
+            await hold_booking_wallet_funds(session, payment.booking_id)
+    elif normalized in {"failed", "failure", "cancelled", "canceled"}:
+        if payment.status == PaymentStatus.pending:
+            payment.status = PaymentStatus.failed
+            payment.paid_at = None
+    elif normalized in {"refunded", "chargeback", "reverse"}:
+        if payment.status != PaymentStatus.refunded:
+            was_successful = payment.status == PaymentStatus.success
+            payment.status = PaymentStatus.refunded
+            payment.paid_at = None
+            if was_successful:
+                await reverse_booking_wallet_hold(session, payment.booking_id)
     else:
         payment.status = PaymentStatus.pending
 
@@ -143,4 +169,75 @@ async def payment_webhook(request: Request, session: AsyncSession = Depends(get_
     session.add(payment)
     await session.commit()
     await session.refresh(payment)
+    return payment
+
+
+@router.post("/{payment_id}/verify", response_model=PaymentRead)
+async def verify_payment_status(
+    payment_id: uuid.UUID,
+    transaction_id: str = Query(..., min_length=1),
+    user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Verify an initiated Flutterwave transaction against the provider."""
+    payment = await get_payment_by_id(session, payment_id)
+    if not payment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
+    booking = await get_booking_by_id(session, payment.booking_id)
+    if not booking or (str(booking.user_id) != str(user.id) and user.role != "admin"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
+    try:
+        result = verify_flutterwave_transaction(transaction_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Flutterwave verification failed: {exc}") from exc
+
+    data = result.get("data", {}) if isinstance(result, dict) else {}
+    if data:
+        data_tx_ref = data.get("tx_ref")
+        if payment.transaction_ref and data_tx_ref and data_tx_ref != payment.transaction_ref:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transaction reference mismatch")
+
+    return await apply_payment_status(session, payment, str(data.get("status", "")), result)
+
+
+@callback_router.get("/payment/callback")
+@callback_router.get("/api/v1/payments/callback")
+async def payment_callback(
+    status_value: str | None = Query(default=None, alias="status"),
+    tx_ref: str | None = Query(default=None),
+    transaction_id: str | None = Query(default=None),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Handle Flutterwave's browser redirect after checkout.
+
+    Browser redirects are not authenticated API requests, so completion is
+    made safe by looking up the local transaction reference and independently
+    verifying the gateway's transaction id.
+    """
+    if not tx_ref:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing tx_ref")
+    if not transaction_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing transaction_id")
+
+    payment = await get_payment_by_transaction_ref(session, tx_ref)
+    if not payment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
+
+    try:
+        result = verify_flutterwave_transaction(transaction_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Flutterwave verification failed: {exc}") from exc
+
+    data = result.get("data", {}) if isinstance(result, dict) else {}
+    data_tx_ref = data.get("tx_ref")
+    if data_tx_ref and data_tx_ref != payment.transaction_ref:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transaction reference mismatch")
+
+    verified_status = str(data.get("status") or status_value or "")
+    await apply_payment_status(session, payment, verified_status, result)
     return {"status": "ok", "payment_id": str(payment.id), "payment_status": payment.status.value}

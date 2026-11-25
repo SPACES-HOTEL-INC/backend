@@ -85,6 +85,11 @@ class Settings(BaseSettings):
     # Shared secret for authenticating payment provider webhooks.
     PAYMENT_WEBHOOK_SECRET: str | None = None
 
+    # Browser redirect used after Flutterwave checkout. This should normally
+    # point to the backend callback in API-only deployments or a frontend
+    # callback URL that forwards the transaction parameters back to the API.
+    PAYMENT_REDIRECT_URL: str | None = None
+
     # Flutterwave keys used when creating and verifying payment transactions.
     FLW_PUBLIC_KEY: str = ""
     FLW_SECRET_KEY: str = ""

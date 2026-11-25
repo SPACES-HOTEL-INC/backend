@@ -24,11 +24,7 @@ class PaymentCreate(PaymentBase):
 
 
 class PaymentUpdate(BaseModel):
-    """Partial update, used when a gateway callback confirms or voids a payment.
-
-    NOTE: nothing calls this yet. Payment status is currently only ever set to
-    "pending" at creation.
-    """
+    """Partial update, used when a gateway callback confirms or voids a payment."""
 
     status: Literal["pending", "success", "failed", "refunded"] | None = None
     transaction_ref: str | None = Field(None, max_length=255)

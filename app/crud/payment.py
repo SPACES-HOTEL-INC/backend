@@ -1,8 +1,4 @@
-"""Database operations for payments.
-
-NOTE: nothing currently marks a payment as successful. There is no gateway
-callback route yet, so every payment stays "pending".
-"""
+"""Database operations for payments and gateway callback updates."""
 
 import uuid
 from sqlalchemy import select

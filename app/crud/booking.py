@@ -201,6 +201,36 @@ async def release_booking_wallet_funds(session: AsyncSession, booking_id: uuid.U
     return db_booking
 
 
+async def reverse_booking_wallet_hold(session: AsyncSession, booking_id: uuid.UUID) -> Booking:
+    """Remove a booking amount from the property's pending or cleared wallet on refund."""
+    db_booking = await get_booking_by_id(session, booking_id)
+    if not db_booking or db_booking.room is None:
+        return db_booking
+
+    property_id = db_booking.room.property_id
+    if property_id is None or db_booking.total_price is None:
+        return db_booking
+
+    property_obj = await session.get(Property, property_id)
+    if property_obj is None:
+        return db_booking
+
+    amount = Decimal(str(db_booking.total_price))
+    pending = Decimal(str(property_obj.pending_balance or 0))
+    balance = Decimal(str(property_obj.balance or 0))
+
+    if pending >= amount:
+        property_obj.pending_balance = float(pending - amount)
+    else:
+        property_obj.pending_balance = 0
+        property_obj.balance = float(max(balance - (amount - pending), Decimal("0")))
+
+    session.add(property_obj)
+    await session.commit()
+    await session.refresh(property_obj)
+    return db_booking
+
+
 async def cancel_booking(session: AsyncSession, booking_id: uuid.UUID) -> Booking:
     """Mark a booking cancelled.
 

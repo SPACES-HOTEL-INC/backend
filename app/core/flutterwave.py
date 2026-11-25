@@ -18,9 +18,17 @@ def make_tx_ref(prefix: str = "spaces") -> str:
 
 
 def verify_webhook_signature(payload: bytes | str, signature: str | None, secret: str) -> bool:
-    """Validate Flutterwave webhook HMAC signatures against the configured secret."""
+    """Validate a Flutterwave webhook using the gateway secret.
+
+    Flutterwave sends a ``verif-hash`` header whose value is the exact webhook
+    secret configured in the dashboard. HMAC verification is retained as a
+    compatibility fallback for callers that use signed payloads.
+    """
     if not secret or not signature:
         return False
+
+    if hmac.compare_digest(signature, secret):
+        return True
 
     if isinstance(payload, str):
         payload_bytes = payload.encode("utf-8")
