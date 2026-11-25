@@ -44,7 +44,12 @@ callback_router = APIRouter(tags=["payments"])
 
 
 @router.post("/initiate", response_model=PaymentRead, status_code=status.HTTP_201_CREATED)
-async def initiate_payment(payment_in: PaymentCreate, user=Depends(get_current_user), session: AsyncSession = Depends(get_async_session)):
+async def initiate_payment(
+    payment_in: PaymentCreate,
+    request: Request,
+    user=Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+):
     """Start a payment against one of the caller's own bookings."""
     booking = await get_booking_by_id(session, payment_in.booking_id)
     if not booking or str(booking.user_id) != str(user.id):
@@ -58,9 +63,12 @@ async def initiate_payment(payment_in: PaymentCreate, user=Depends(get_current_u
 
     payment = await create_payment(session, payment_in)
     tx_ref = make_tx_ref("spaces")
-    redirect_url = settings.PAYMENT_REDIRECT_URL or os.getenv(
-        "PAYMENT_REDIRECT_URL", "http://localhost:8000/payment/callback"
-    )
+    redirect_url = settings.PAYMENT_REDIRECT_URL or os.getenv("PAYMENT_REDIRECT_URL")
+    if not redirect_url:
+        forwarded_proto = request.headers.get("x-forwarded-proto", request.url.scheme)
+        forwarded_host = request.headers.get("x-forwarded-host") or request.headers.get("host")
+        public_host = forwarded_host or request.url.netloc
+        redirect_url = f"{forwarded_proto}://{public_host}/payment/callback"
     payload = build_checkout_payload(
         amount=payment.amount,
         currency=payment.currency,
