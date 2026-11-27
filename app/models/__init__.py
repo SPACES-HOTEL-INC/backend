@@ -10,3 +10,4 @@ from .room import Room
 from .booking import Booking
 from .payment import Payment
 from .review import Review
+from .chat import Conversation, ChatMessage
