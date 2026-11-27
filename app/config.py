@@ -96,6 +96,11 @@ class Settings(BaseSettings):
     FLW_ENCRYPTION_KEY: str = ""
     FLW_BASE_URL: str = "https://api.flutterwave.com/v3"
 
+    # Google Maps configuration
+    GOOGLE_MAPS_API_KEY: str = ""
+    GOOGLE_API_KEY: str = ""
+    GOOGLE_MAPS_GEOCODING_URL: str = "https://maps.googleapis.com/maps/api/geocode/json"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

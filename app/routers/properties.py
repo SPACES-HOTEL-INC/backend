@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..cache import delete_pattern, get_cache, set_cache
 from ..core.dependencies import get_current_user, require_admin, require_host
 from ..core.cloudinary import upload_image_to_cloudinary
+from ..core.geocoding import geocode_address
 from ..crud.property import create_property, deactivate_property, get_property_by_id, list_host_properties, list_properties, update_property
 from ..database import get_async_session
 from ..models.property import Property
@@ -139,6 +140,8 @@ async def create_property_endpoint(
     country: str | None = Form("Nigeria"),
     phone: str | None = Form(None),
     email: str | None = Form(None),
+    latitude: float | None = Form(None),
+    longitude: float | None = Form(None),
     description: str | None = Form(None),
     amenities: str | None = Form("[]"),
     images: list[UploadFile] = File(default=[]),
@@ -199,6 +202,14 @@ async def create_property_endpoint(
     contact_parts = [c.strip() for c in [phone, email] if c and c.strip()]
     contact_info = " | ".join(contact_parts) if contact_parts else None
 
+    # Prefer explicit coordinates if supplied, otherwise geocode the address
+    coordinates = None
+    if latitude is not None and longitude is not None:
+        if -90 <= latitude <= 90 and -180 <= longitude <= 180:
+            coordinates = (latitude, longitude)
+    if coordinates is None:
+        coordinates = await geocode_address(address, city, state, country)
+
     create_data = {
         "hotel_name": name,
         "property_type": normalized_type,
@@ -206,6 +217,8 @@ async def create_property_endpoint(
         "city": city,
         "state": state,
         "country": country,
+        "latitude": coordinates[0] if coordinates else None,
+        "longitude": coordinates[1] if coordinates else None,
         "contact": contact_info,
         "description": description,
         "amenities": parsed_amenities,
@@ -248,6 +261,24 @@ async def update_property_endpoint(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found")
     if not user.can_access_hotel(property_obj.owner_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found or not owned")
+
+    update_data = property_in.model_dump(exclude_unset=True)
+    if update_data.get("latitude") is not None and update_data.get("longitude") is not None:
+        latitude = update_data["latitude"]
+        longitude = update_data["longitude"]
+        if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid latitude or longitude")
+    elif any(field in update_data for field in ("address", "city", "state", "country")):
+        coordinates = await geocode_address(
+            update_data.get("address", property_obj.address),
+            update_data.get("city", property_obj.city),
+            update_data.get("state", property_obj.state),
+            update_data.get("country", property_obj.country),
+        )
+        if coordinates:
+            update_data["latitude"], update_data["longitude"] = coordinates
+            property_in = PropertyUpdate(**update_data)
+
     updated_property = await update_property(session, property_obj, property_in)
     await invalidate_property_search_cache()
     return updated_property
